@@ -12,8 +12,8 @@ struct MonthPickerView: View {   // Use generics to specify the protocol type
     @StateObject var monthPickerVM: MonthPickerVM
     @StateObject var navigationPathVM: NavigationPathVM
     
-    init() {
-        self._monthPickerVM = StateObject(wrappedValue: MonthPickerVM())
+    init(monthPickerVM: MonthPickerVM = .init()) {
+        self._monthPickerVM = StateObject(wrappedValue: monthPickerVM)
         self._navigationPathVM = StateObject(wrappedValue: NavigationPathVM())
     }
         
