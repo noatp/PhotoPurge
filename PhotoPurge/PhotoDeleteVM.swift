@@ -24,21 +24,24 @@ class PhotoDeleteVM: ObservableObject {
         photoAssets: [PHAsset]?,
         navigationPathVM: NavigationPathVM
     ) {
+#if DEBUG
         print("PhotoDeleteVM init")
+#endif
         self.photoAssets = photoAssets
         self.navigationPathVM = navigationPathVM
     }
     
+#if DEBUG
     deinit {
         print("PhotoDeleteVM deinit")
     }
+#endif
     
     private let imageManager = PHImageManager.default()
     
     // Fetch photos and corresponding assets
     func fetchPhotoInMonth() {
         guard let photoAssets else { return }
-        print("photo counts: \(photoAssets.count)")
         fetchNewPhotos()
     }
     
@@ -47,7 +50,6 @@ class PhotoDeleteVM: ObservableObject {
         
         if hasNextImage() {
             currentPhotoIndex += 1
-            print("current photo index: \(currentPhotoIndex)")
             subtitle = "\(currentPhotoIndex + 1) of \(photoAssets.count)"
             fetchPhotosAtIndex(currentPhotoIndex) { [weak self] currentImage in
                 guard let self = self else { return }
@@ -76,24 +78,21 @@ class PhotoDeleteVM: ObservableObject {
             }
         }
     }
-
+    
     
     
     private func fetchPhotosAtIndex(_ index: Int, completion: @escaping (UIImage?) -> Void) {
         guard let photoAssets else {
-            print("No photo assets available")
             completion(nil)
             return
         }
         
         if index >= photoAssets.count {
-            print("Index out of bounds: \(index)")
             completion(nil)
             return
         }
         
         let asset = photoAssets[index]
-        print("Fetching photo at index: \(index)")
         
         let options = PHImageRequestOptions()
         options.isSynchronous = false // Allow asynchronous fetching
@@ -106,13 +105,15 @@ class PhotoDeleteVM: ObservableObject {
             contentMode: .aspectFit,
             options: options
         ) { image, info in
+#if DEBUG
             if let error = info?[PHImageErrorKey] as? NSError {
                 print("Error fetching image: \(error.localizedDescription)")
             }
+#endif
             completion(image)
         }
     }
-
+    
     
     
     private func hasNextImage() -> Bool {
@@ -133,7 +134,7 @@ class PhotoDeleteVM: ObservableObject {
     func deletePhotoFromDevice() {
         // Ensure we have a valid photo to delete
         guard !photoAssetsToDelete.isEmpty else {
-            navigationPathVM.navigateTo(.result)
+            navigationPathVM.navigateTo(.result(0))
             return
         }
         
@@ -147,14 +148,19 @@ class PhotoDeleteVM: ObservableObject {
                     PHAssetChangeRequest.deleteAssets(photoAssetsToDelete as NSFastEnumeration)
                 }) { [weak self] success, error in
                     if success {
-                        self?.navigationPathVM.navigateTo(.result)
+                        self?.navigationPathVM.navigateTo(.result(photoAssetsToDelete.count))
                     } else if let error = error {
+#if DEBUG
                         // Handle error
                         print("Error deleting photo: \(error.localizedDescription)")
+#endif
+                        
                     }
                 }
             } else {
+#if DEBUG
                 print("Access denied to photo library")
+#endif
             }
         }
     }

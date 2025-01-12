@@ -10,13 +10,15 @@ import Photos
 
 enum NavigationDestination: Hashable {
     case photoDelete([PHAsset]?)
-    case result
+    case result(Int)
 }
 
 class NavigationPathVM: ObservableObject {
     @Published var path: [NavigationDestination] = [] {
         didSet {
+#if DEBUG
             print(path)
+#endif
         }
     }
     

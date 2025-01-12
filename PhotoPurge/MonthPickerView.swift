@@ -41,8 +41,8 @@ struct MonthPickerView: View {   // Use generics to specify the protocol type
                 switch destination {
                 case .photoDelete(let photoAssets):
                     PhotoDeleteView(photoAssets: photoAssets, navigationPathVM: navigationPathVM)
-                case .result:
-                    ResultView()
+                case .result(let numPhotoDeleted):
+                    ResultView(numberOfPhotosRemoved: numPhotoDeleted, navigationPathVM: navigationPathVM)
                 }
                 
             }
