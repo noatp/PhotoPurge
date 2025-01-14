@@ -8,7 +8,7 @@
 import SwiftUI
 import Photos
 
-struct MonthPickerView: View {   // Use generics to specify the protocol type
+struct MonthPickerView: View {
     @StateObject var monthPickerVM: MonthPickerVM
     @StateObject var navigationPathVM: NavigationPathVM
     
@@ -16,7 +16,7 @@ struct MonthPickerView: View {   // Use generics to specify the protocol type
         self._monthPickerVM = StateObject(wrappedValue: monthPickerVM)
         self._navigationPathVM = StateObject(wrappedValue: NavigationPathVM())
     }
-        
+    
     var body: some View {
         NavigationStack(path: $navigationPathVM.path) {
             ZStack {
@@ -24,13 +24,15 @@ struct MonthPickerView: View {   // Use generics to specify the protocol type
                     ProgressView()
                 }
                 else {
-                    ScrollView {
-                        LazyVStack {
-                            ForEach(monthPickerVM.photoGroups.keys.sorted(), id: \.self) { date in
-                                Button(Util.getMonthString(from: date)) {
-                                    navigationPathVM.navigateTo(.photoDelete(monthPickerVM.photoGroups[date]))
+                    List {
+                        // Group by year first
+                        ForEach(monthPickerVM.groupedByYear.keys.sorted(), id: \.self) { year in
+                            Section(header: YearHeaderView(year: year)) {
+                                ForEach(monthPickerVM.groupedByYear[year]!.sorted(by: { $0.key < $1.key }), id: \.key) { monthDate, assets in
+                                    Button(Util.getMonthString(from: monthDate)) {
+                                        navigationPathVM.navigateTo(.photoDelete(assets))
+                                    }
                                 }
-                                Divider()
                             }
                         }
                     }
@@ -44,7 +46,6 @@ struct MonthPickerView: View {   // Use generics to specify the protocol type
                 case .result(let numPhotoDeleted):
                     ResultView(numberOfPhotosRemoved: numPhotoDeleted, navigationPathVM: navigationPathVM)
                 }
-                
             }
             .navigationTitle("Pick a month")
         }
@@ -55,6 +56,23 @@ struct MonthPickerView: View {   // Use generics to specify the protocol type
     }
 }
 
+struct YearHeaderView: View {
+    let year: Int
+    
+    var body: some View {
+        Text("\(String(year))")
+            .font(.title3)
+    }
+}
+
 #Preview {
-    MonthPickerView()
+    MonthPickerView(
+        monthPickerVM: .init(
+            isLoading: false,
+            groupedByYear: [
+                2025 : [Date(): []],
+                2024 : [Calendar.current.date(byAdding: .year, value: -1, to: Date())!: []]
+            ]
+        )
+    )
 }

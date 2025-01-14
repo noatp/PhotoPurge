@@ -9,12 +9,19 @@ import Photos
 import UIKit
 
 class MonthPickerVM: ObservableObject {
-    @Published var photoGroups: [Date: [PHAsset]] = [:]
-    @Published var isLoading: Bool = false
+    @Published var isLoading: Bool
+    @Published var groupedByYear: [Int: [Date: [PHAsset]]]
     
+    init(
+        isLoading: Bool = false,
+        groupedByYear: [Int : [Date : [PHAsset]]] = [:]
+    ) {
+        self.isLoading = isLoading
+        self.groupedByYear = groupedByYear
+    }
+
     func getPhotosByMonth() {
         isLoading = true
-        // Request access to the photo library
         PHPhotoLibrary.requestAuthorization(for: .readWrite) { status in
             guard status == .authorized else {
                 DispatchQueue.main.async { [weak self] in
@@ -23,28 +30,32 @@ class MonthPickerVM: ObservableObject {
                 return
             }
             
-            // Fetch all photos
             let fetchOptions = PHFetchOptions()
             fetchOptions.sortDescriptors = [NSSortDescriptor(key: "creationDate", ascending: true)]
             let assets = PHAsset.fetchAssets(with: .image, options: fetchOptions)
             
-            // Group photos by month
-            var groupedPhotos: [Date: [PHAsset]] = [:]  // Store with Date key for sorting
+            var groupedPhotos: [Int: [Date: [PHAsset]]] = [:]  // Year -> Month -> Photos
             
             assets.enumerateObjects { asset, _, _ in
                 if let creationDate = asset.creationDate {
-                    let startOfMonth = self.startOfMonth(from: creationDate)  // Use first day of the month
-                    groupedPhotos[startOfMonth, default: []].append(asset)
+                    let startOfMonth = self.startOfMonth(from: creationDate)
+                    let year = Calendar.current.component(.year, from: creationDate)
+                    
+                    if groupedPhotos[year] == nil {
+                        groupedPhotos[year] = [:]
+                    }
+                    
+                    groupedPhotos[year]?[startOfMonth, default: []].append(asset)
                 }
             }
             
             DispatchQueue.main.async {
-                self.photoGroups = groupedPhotos
+                self.groupedByYear = groupedPhotos
                 self.isLoading = false
             }
         }
     }
-    
+
     private func startOfMonth(from date: Date) -> Date {
         let calendar = Calendar.current
         let components = calendar.dateComponents([.year, .month], from: date)
