@@ -6,8 +6,19 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXContainerItemProxy section */
+		CAE4BAA32D34BFB9007BCF58 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = CAA84E6D2D320E3A00260CCC /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CAA84E742D320E3A00260CCC;
+			remoteInfo = PhotoPurge;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
 		CAA84E752D320E3A00260CCC /* PhotoPurge.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PhotoPurge.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		CAE4BA9D2D34BFB9007BCF58 /* PhotoPurgeUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PhotoPurgeUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -29,10 +40,22 @@
 			path = PhotoPurge;
 			sourceTree = "<group>";
 		};
+		CAE4BA9E2D34BFB9007BCF58 /* PhotoPurgeUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = PhotoPurgeUITests;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		CAA84E722D320E3A00260CCC /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CAE4BA9A2D34BFB9007BCF58 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -46,6 +69,7 @@
 			isa = PBXGroup;
 			children = (
 				CAA84E772D320E3A00260CCC /* PhotoPurge */,
+				CAE4BA9E2D34BFB9007BCF58 /* PhotoPurgeUITests */,
 				CAA84E762D320E3A00260CCC /* Products */,
 			);
 			sourceTree = "<group>";
@@ -54,6 +78,7 @@
 			isa = PBXGroup;
 			children = (
 				CAA84E752D320E3A00260CCC /* PhotoPurge.app */,
+				CAE4BA9D2D34BFB9007BCF58 /* PhotoPurgeUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -83,6 +108,29 @@
 			productReference = CAA84E752D320E3A00260CCC /* PhotoPurge.app */;
 			productType = "com.apple.product-type.application";
 		};
+		CAE4BA9C2D34BFB9007BCF58 /* PhotoPurgeUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CAE4BAA72D34BFB9007BCF58 /* Build configuration list for PBXNativeTarget "PhotoPurgeUITests" */;
+			buildPhases = (
+				CAE4BA992D34BFB9007BCF58 /* Sources */,
+				CAE4BA9A2D34BFB9007BCF58 /* Frameworks */,
+				CAE4BA9B2D34BFB9007BCF58 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				CAE4BAA42D34BFB9007BCF58 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				CAE4BA9E2D34BFB9007BCF58 /* PhotoPurgeUITests */,
+			);
+			name = PhotoPurgeUITests;
+			packageProductDependencies = (
+			);
+			productName = PhotoPurgeUITests;
+			productReference = CAE4BA9D2D34BFB9007BCF58 /* PhotoPurgeUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -95,6 +143,10 @@
 				TargetAttributes = {
 					CAA84E742D320E3A00260CCC = {
 						CreatedOnToolsVersion = 16.1;
+					};
+					CAE4BA9C2D34BFB9007BCF58 = {
+						CreatedOnToolsVersion = 16.1;
+						TestTargetID = CAA84E742D320E3A00260CCC;
 					};
 				};
 			};
@@ -113,12 +165,20 @@
 			projectRoot = "";
 			targets = (
 				CAA84E742D320E3A00260CCC /* PhotoPurge */,
+				CAE4BA9C2D34BFB9007BCF58 /* PhotoPurgeUITests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
 		CAA84E732D320E3A00260CCC /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CAE4BA9B2D34BFB9007BCF58 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -135,7 +195,22 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		CAE4BA992D34BFB9007BCF58 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		CAE4BAA42D34BFB9007BCF58 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CAA84E742D320E3A00260CCC /* PhotoPurge */;
+			targetProxy = CAE4BAA32D34BFB9007BCF58 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		CAA84E812D320E3C00260CCC /* Debug */ = {
@@ -269,6 +344,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = PhotoPurge/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "Photo Purger";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
 				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "We need access to delete photos from your library.";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "We need access to your photo library to display and delete photos.";
@@ -290,7 +366,7 @@
 				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Debug;
 		};
@@ -306,6 +382,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = PhotoPurge/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "Photo Purger";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
 				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "We need access to delete photos from your library.";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "We need access to your photo library to display and delete photos.";
@@ -327,7 +404,51 @@
 				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+		CAE4BAA52D34BFB9007BCF58 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = ZRF6QZUXP5;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = panto.PhotoPurgeUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				TEST_TARGET_NAME = PhotoPurge;
+			};
+			name = Debug;
+		};
+		CAE4BAA62D34BFB9007BCF58 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = ZRF6QZUXP5;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = panto.PhotoPurgeUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				TEST_TARGET_NAME = PhotoPurge;
 			};
 			name = Release;
 		};
@@ -348,6 +469,15 @@
 			buildConfigurations = (
 				CAA84E842D320E3C00260CCC /* Debug */,
 				CAA84E852D320E3C00260CCC /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		CAE4BAA72D34BFB9007BCF58 /* Build configuration list for PBXNativeTarget "PhotoPurgeUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CAE4BAA52D34BFB9007BCF58 /* Debug */,
+				CAE4BAA62D34BFB9007BCF58 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
