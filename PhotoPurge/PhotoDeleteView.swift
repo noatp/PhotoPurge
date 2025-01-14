@@ -11,87 +11,165 @@ import Photos
 struct PhotoDeleteView: View {   // Use generics to specify the protocol type
     @StateObject var photoDeleteVM: PhotoDeleteVM
     
-    init(photoAssets: [PHAsset]?, navigationPathVM: NavigationPathVM) {
-        self._photoDeleteVM = StateObject(wrappedValue: PhotoDeleteVM(photoAssets: photoAssets, navigationPathVM: navigationPathVM))
+    init(
+        photoAssets: [PHAsset]?,
+        navigationPathVM: NavigationPathVM,
+        mockPhotoDeleteVM: PhotoDeleteVM? = nil
+    ) {
+        guard let mockPhotoDeleteVM = mockPhotoDeleteVM else {
+            self._photoDeleteVM = StateObject(wrappedValue: PhotoDeleteVM(photoAssets: photoAssets, navigationPathVM: navigationPathVM))
+            return
+        }
+        self._photoDeleteVM = StateObject(wrappedValue: mockPhotoDeleteVM)
+        
     }
     
     var body: some View {
-        VStack {
-            Text(photoDeleteVM.subtitle)
-                .font(.title3)
-                .padding(.bottom)
-            ZStack {
-                if let currentPhoto = photoDeleteVM.currentPhoto {
+        ZStack {
+            if let currentPhoto = photoDeleteVM.currentPhoto {
+                VStack {
+                    subtitle
+                    Spacer()
                     Image(uiImage: currentPhoto)
                         .resizable()
                         .scaledToFit()
                         .cornerRadius(8)
-                    
-                    if let nextPhoto = photoDeleteVM.nextPhoto {
-                        VStack {
-                            HStack {
-                                Spacer()
-                                Image(uiImage: nextPhoto)
-                                    .resizable()
-                                    .scaledToFit()
-                                    .frame(width: 100)
-                                    .cornerRadius(8)
-                            }
-                            Spacer()
-                        }
-                    }
+                    Spacer(minLength: 32)
+                    keepDeleteButtonBar
                 }
-                else  {
-                    VStack {
+                
+                VStack {
+                    Spacer()
+                        .frame(height: 32)
+                    HStack (alignment: .top) {
+                        if photoDeleteVM.shouldShowUndoButton {
+                            undoButton
+                        }
                         Spacer()
-                        ProgressView()
-                        Spacer()
+                        nextPhotoImage
                     }
+                    Spacer()
                 }
             }
-            Spacer()
-                .frame(height: 32)
-            HStack {
-                Button {
-                    photoDeleteVM.keepPhoto()
-                } label: {
-                    Image(systemName: "checkmark")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(maxWidth: .infinity, maxHeight: 40)
-                        .foregroundColor(.white)
-                        .padding(.vertical)
-                }
-                .background(Color.green)
-                .cornerRadius(8)
-                
-                Spacer()
-                
-                Button {
-                    photoDeleteVM.deletePhoto()
-                } label: {
-                    Image(systemName: "trash")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(maxWidth: .infinity, maxHeight: 40)
-                        .foregroundColor(.white)
-                        .padding(.vertical)
-                }
-                .background(Color.red)
-                .cornerRadius(8)
+            else {
+                progressPanel
             }
         }
         .padding(.horizontal)
         .navigationTitle("Photo")
         .navigationBarTitleDisplayMode(.inline)
         .task {
-            photoDeleteVM.fetchPhotoInMonth()
+            photoDeleteVM.fetchNewPhotos()
         }
     }
     
+    var progressPanel: some View {
+        VStack {
+            Spacer()
+            ProgressView()
+            Spacer()
+        }
+    }
     
+    var undoButton: some View {
+        Button {
+            photoDeleteVM.undoLatestAction()
+        } label: {
+            Image(systemName: "arrow.uturn.backward")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 30, height: 30)
+                .foregroundColor(.white)
+                .padding()
+        }
+        .background(Color.gray)
+        .cornerRadius(8)
+    }
+    
+    var keepDeleteButtonBar: some View {
+        HStack {
+            Button {
+                photoDeleteVM.keepPhoto()
+            } label: {
+                Image(systemName: "checkmark")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(maxWidth: .infinity, maxHeight: 44)
+                    .foregroundColor(.white)
+                    .padding(.vertical)
+            }
+            .background(Color.green)
+            .cornerRadius(8)
+            
+            Spacer()
+            
+            Button {
+                photoDeleteVM.deletePhoto()
+            } label: {
+                Image(systemName: "trash")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(maxWidth: .infinity, maxHeight: 44)
+                    .foregroundColor(.white)
+                    .padding(.vertical)
+            }
+            .background(Color.red)
+            .cornerRadius(8)
+        }
+    }
+    
+    var nextPhotoImage: some View {
+        Group {
+            if let nextPhoto = photoDeleteVM.nextPhoto {
+                Image(uiImage: nextPhoto)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(maxWidth: 100, maxHeight: 100)
+                    .clipped()
+                    .cornerRadius(8)
+            } else {
+                EmptyView()
+            }
+        }
+    }
+    
+    var subtitle: some View {
+        Text(photoDeleteVM.subtitle)
+            .font(.title3)
+            .padding(.bottom)
+    }
 }
 
 #Preview {
-    PhotoDeleteView(photoAssets: [], navigationPathVM: .init())
+    NavigationStack {
+        PhotoDeleteView(
+            photoAssets: [],
+            navigationPathVM: .init(),
+            mockPhotoDeleteVM: .init(
+                photoAssets: [],
+                navigationPathVM: .init(),
+                currentPhoto: .init(named: "test1"),
+                nextPhoto: .init(named: "test2"),
+                subtitle: "0 of 2",
+                shouldShowUndoButton: true
+            )
+        )
+    }
+}
+
+#Preview {
+    NavigationStack {
+        PhotoDeleteView(
+            photoAssets: [],
+            navigationPathVM: .init(),
+            mockPhotoDeleteVM: .init(
+                photoAssets: [],
+                navigationPathVM: .init(),
+                currentPhoto: nil,
+                nextPhoto: .init(systemName: "tray.2.fill"),
+                subtitle: "0 of 2",
+                shouldShowUndoButton: true
+            )
+        )
+    }
 }
