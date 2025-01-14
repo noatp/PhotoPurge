@@ -48,6 +48,16 @@ struct MonthPickerView: View {
                 }
             }
             .navigationTitle("Pick a month")
+            .toolbar {
+                ToolbarItem {
+                    Button {
+                        monthPickerVM.getPhotosByMonth()
+                    } label: {
+                        Text("Reload")
+                    }
+
+                }
+            }
         }
         .environmentObject(navigationPathVM)
         .task {
@@ -76,3 +86,4 @@ struct YearHeaderView: View {
         )
     )
 }
+
