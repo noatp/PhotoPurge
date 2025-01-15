@@ -14,6 +14,7 @@ enum WelcomeScreenNumber {
 
 struct WelcomeScreen: View {
     @State private var welcomeScreenNumber: WelcomeScreenNumber = .first
+    @Binding var isFirstLaunch: Bool
     
     var body: some View {
         GeometryReader { geometry in
@@ -54,7 +55,7 @@ struct WelcomeScreen: View {
             
             // Continue Button
             Button {
-                withAnimation(.easeInOut(duration: 1)) {
+                withAnimation(.easeInOut(duration: 0.5)) {
                     welcomeScreenNumber = .second
                 }
             } label: {
@@ -74,15 +75,24 @@ struct WelcomeScreen: View {
                 .font(.title)
                 .lineLimit(2)
                 .padding()
-            Text("and select the checkmark to keep a photo or the trash bin to remove it.")
-                .font(.callout)
-                .lineLimit(2)
-                .padding()
+            Group {
+                Text("and select the ") +
+                Text("checkmark")
+                    .foregroundStyle(.green)
+                    .fontWeight(.bold) +
+                Text(" to keep a photo or the ") +
+                Text("trash bin")
+                    .foregroundStyle(.red)
+                    .fontWeight(.bold) +
+                Text(" to remove it.")
+            }
+            .font(.callout)
+            .padding()
             
             // Continue Button
             Button {
-                welcomeScreenNumber = .first
-
+                UserDefaults.standard.set(true, forKey: "hasLaunchedBefore")
+                isFirstLaunch = false
             } label: {
                 Text("Continue")
                     .font(.headline)
@@ -93,6 +103,6 @@ struct WelcomeScreen: View {
 }
 
 #Preview {
-    WelcomeScreen()
+    WelcomeScreen(isFirstLaunch: .constant(true))
 }
 

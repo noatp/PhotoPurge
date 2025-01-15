@@ -11,7 +11,7 @@ import SwiftUI
 struct PhotoPurgeApp: App {
     var body: some Scene {
         WindowGroup {
-            MonthPickerView()
+            ContentView()
         }
     }
 }
