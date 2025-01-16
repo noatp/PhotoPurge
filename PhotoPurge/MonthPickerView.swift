@@ -29,9 +29,14 @@ struct MonthPickerView: View {
                         ForEach(monthPickerVM.groupedByYear.keys.sorted(), id: \.self) { year in
                             Section(header: YearHeaderView(year: year)) {
                                 ForEach(monthPickerVM.groupedByYear[year]!.sorted(by: { $0.key < $1.key }), id: \.key) { monthDate, assets in
-                                    Button(Util.getMonthString(from: monthDate)) {
-                                        navigationPathVM.navigateTo(.photoDelete(assets))
+                                    HStack {
+                                        Button(Util.getMonthString(from: monthDate)) {
+                                            navigationPathVM.navigateTo(.photoDelete(assets))
+                                        }
+                                        Spacer()
+                                        Text("\(assets.count) photos")
                                     }
+                                    
                                 }
                             }
                         }
