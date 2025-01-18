@@ -61,6 +61,11 @@ struct MonthPickerView: View {
         .task {
             monthPickerVM.getPhotosByMonth()
         }
+        .onChange(of: navigationPathVM.path) { _, newValue in
+            if newValue == [] {
+                monthPickerVM.getPhotosByMonth()
+            }
+        }
     }
     
     private func monthRow(monthDate: Date, assets: [PHAsset]) -> some View {

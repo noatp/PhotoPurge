@@ -21,6 +21,7 @@ class MonthPickerVM: ObservableObject {
     }
 
     func getPhotosByMonth() {
+        print("LOAD DATA")
         isLoading = true
         PHPhotoLibrary.requestAuthorization(for: .readWrite) { status in
             guard status == .authorized else {
