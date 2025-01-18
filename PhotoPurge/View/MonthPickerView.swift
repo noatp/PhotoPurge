@@ -69,7 +69,7 @@ struct MonthPickerView: View {
                 navigationPathVM.navigateTo(.photoDelete(assets))
             }
             Spacer()
-            Text("\(assets.count) items")
+            Text("\(assets.count) " + (assets.count > 1 ? "items" : "item"))
         }
     }
 }
