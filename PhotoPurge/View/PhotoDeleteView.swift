@@ -7,17 +7,19 @@
 
 import SwiftUI
 import Photos
+import AVKit
 
 struct PhotoDeleteView: View {   // Use generics to specify the protocol type
     @StateObject var photoDeleteVM: PhotoDeleteVM
+    @State private var player: AVPlayer?
     
     init(
-        photoAssets: [PHAsset]?,
+        assets: [PHAsset]?,
         navigationPathVM: NavigationPathVM,
         mockPhotoDeleteVM: PhotoDeleteVM? = nil
     ) {
         guard let mockPhotoDeleteVM = mockPhotoDeleteVM else {
-            self._photoDeleteVM = StateObject(wrappedValue: PhotoDeleteVM(photoAssets: photoAssets, navigationPathVM: navigationPathVM))
+            self._photoDeleteVM = StateObject(wrappedValue: PhotoDeleteVM(assets: assets, navigationPathVM: navigationPathVM))
             return
         }
         self._photoDeleteVM = StateObject(wrappedValue: mockPhotoDeleteVM)
@@ -26,14 +28,11 @@ struct PhotoDeleteView: View {   // Use generics to specify the protocol type
     
     var body: some View {
         ZStack {
-            if let currentPhoto = photoDeleteVM.currentPhoto {
+            if let currentDisplayingAsset = photoDeleteVM.currentDisplayingAsset {
                 VStack {
                     subtitle
                     Spacer()
-                    Image(uiImage: currentPhoto)
-                        .resizable()
-                        .scaledToFit()
-                        .cornerRadius(8)
+                    currentAsset(currentDisplayingAsset)
                     Spacer(minLength: 32)
                     keepDeleteButtonBar
                 }
@@ -46,7 +45,7 @@ struct PhotoDeleteView: View {   // Use generics to specify the protocol type
                             undoButton
                         }
                         Spacer()
-                        nextPhotoImage
+                        nextImage
                     }
                     Spacer()
                 }
@@ -118,10 +117,10 @@ struct PhotoDeleteView: View {   // Use generics to specify the protocol type
         }
     }
     
-    var nextPhotoImage: some View {
+    var nextImage: some View {
         Group {
-            if let nextPhoto = photoDeleteVM.nextPhoto {
-                Image(uiImage: nextPhoto)
+            if let nextImageUIImage = photoDeleteVM.nextImage {
+                Image(uiImage: nextImageUIImage)
                     .resizable()
                     .scaledToFill()
                     .frame(maxWidth: 100, maxHeight: 100)
@@ -133,24 +132,71 @@ struct PhotoDeleteView: View {   // Use generics to specify the protocol type
         }
     }
     
+    private func nextAsset(_ displayingAsset: DisplayingAsset) -> some View {
+        Group {
+            switch displayingAsset.assetType {
+            case .photo:
+                if let nextImage = displayingAsset.image {
+                    Image(uiImage: nextImage)
+                        .resizable()
+                        .scaledToFit()
+                        .cornerRadius(8)
+                }
+            case .video:
+                if let currentVideoURL = displayingAsset.videoURL {
+                    let avPlayer = AVPlayer(url: currentVideoURL)
+                    VideoPlayer(player: avPlayer)
+                        .cornerRadius(8)
+                }
+            }
+        }
+    }
+    
     var subtitle: some View {
         Text(photoDeleteVM.subtitle)
             .font(.title3)
             .padding(.bottom)
     }
+    
+    private func currentAsset(_ displayingAsset: DisplayingAsset) -> some View {
+        Group {
+            switch displayingAsset.assetType {
+            case .photo:
+                if let currentImage = displayingAsset.image {
+                    Image(uiImage: currentImage)
+                        .resizable()
+                        .scaledToFit()
+                        .cornerRadius(8)
+                }
+            case .video:
+                if let currentVideoURL = displayingAsset.videoURL {
+                    VideoPlayer(player: player)
+                        .cornerRadius(8)
+                        .onAppear {
+                            // Ensure player is initialized and ready
+                            self.player = AVPlayer(url: currentVideoURL)
+                            self.player?.play() // Start playback
+                        }
+                        .onDisappear {
+                            self.player?.pause() // Pause when leaving the view
+                        }
+                }
+            }
+        }
+    }
 }
 
 #Preview {
     NavigationStack {
         PhotoDeleteView(
-            photoAssets: [],
+            assets: [],
             navigationPathVM: .init(),
             mockPhotoDeleteVM: .init(
-                photoAssets: [],
-                navigationPathVM: .init(),
-                currentPhoto: .init(named: "test1"),
-                nextPhoto: .init(named: "test2"),
-                subtitle: "0 of 2",
+                assets: [],
+                navigationPathVM: NavigationPathVM(),
+                currentDisplayingAsset: .init(assetType: .photo, image: .init(named: "test1")),
+                nextImage: .init(named: "test1"),
+                subtitle: "2 of 3",
                 shouldShowUndoButton: true
             )
         )
@@ -160,16 +206,18 @@ struct PhotoDeleteView: View {   // Use generics to specify the protocol type
 #Preview {
     NavigationStack {
         PhotoDeleteView(
-            photoAssets: [],
+            assets: [],
             navigationPathVM: .init(),
             mockPhotoDeleteVM: .init(
-                photoAssets: [],
-                navigationPathVM: .init(),
-                currentPhoto: nil,
-                nextPhoto: .init(systemName: "tray.2.fill"),
-                subtitle: "0 of 2",
+                assets: [],
+                navigationPathVM: NavigationPathVM(),
+                currentDisplayingAsset: .init(assetType: .video, videoURL: .init(string: "https://www.youtube.com/shorts/aeTsXBCZUsI")),
+                nextImage: .init(named: "test2"),
+                subtitle: "2 of 3",
                 shouldShowUndoButton: true
             )
         )
     }
 }
+
+

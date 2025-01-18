@@ -32,7 +32,7 @@ class MonthPickerVM: ObservableObject {
             
             let fetchOptions = PHFetchOptions()
             fetchOptions.sortDescriptors = [NSSortDescriptor(key: "creationDate", ascending: true)]
-            let assets = PHAsset.fetchAssets(with: .image, options: fetchOptions)
+            let assets = PHAsset.fetchAssets(with: fetchOptions)
             
             var groupedPhotos: [Int: [Date: [PHAsset]]] = [:]  // Year -> Month -> Photos
             
