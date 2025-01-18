@@ -11,7 +11,6 @@ import AVKit
 
 struct PhotoDeleteView: View {   // Use generics to specify the protocol type
     @StateObject var photoDeleteVM: PhotoDeleteVM
-    @State private var player: AVPlayer?
     
     init(
         assets: [PHAsset]?,
@@ -132,26 +131,6 @@ struct PhotoDeleteView: View {   // Use generics to specify the protocol type
         }
     }
     
-    private func nextAsset(_ displayingAsset: DisplayingAsset) -> some View {
-        Group {
-            switch displayingAsset.assetType {
-            case .photo:
-                if let nextImage = displayingAsset.image {
-                    Image(uiImage: nextImage)
-                        .resizable()
-                        .scaledToFit()
-                        .cornerRadius(8)
-                }
-            case .video:
-                if let currentVideoURL = displayingAsset.videoURL {
-                    let avPlayer = AVPlayer(url: currentVideoURL)
-                    VideoPlayer(player: avPlayer)
-                        .cornerRadius(8)
-                }
-            }
-        }
-    }
-    
     var subtitle: some View {
         Text(photoDeleteVM.subtitle)
             .font(.title3)
@@ -170,19 +149,45 @@ struct PhotoDeleteView: View {   // Use generics to specify the protocol type
                 }
             case .video:
                 if let currentVideoURL = displayingAsset.videoURL {
-                    VideoPlayer(player: player)
-                        .cornerRadius(8)
-                        .onAppear {
-                            // Ensure player is initialized and ready
-                            self.player = AVPlayer(url: currentVideoURL)
-                            self.player?.play() // Start playback
-                        }
-                        .onDisappear {
-                            self.player?.pause() // Pause when leaving the view
-                        }
+                    VideoPlayerWrapper(videoURL: currentVideoURL)
                 }
             }
         }
+    }
+}
+
+struct VideoPlayerWrapper: View {
+    let videoURL: URL
+    @State private var player: AVPlayer?
+
+    var body: some View {
+        VideoPlayer(player: player)
+            .id(videoURL) // This forces the view to recreate
+            .onAppear {
+                initializePlayer()
+            }
+            .onDisappear {
+                cleanupPlayer()
+            }
+            .onChange(of: videoURL) { _, newURL in
+                updatePlayer(with: newURL)
+            }
+    }
+
+    private func initializePlayer() {
+        player = AVPlayer(url: videoURL)
+        player?.play()
+    }
+    
+    private func cleanupPlayer() {
+        player?.pause()
+        player = nil
+    }
+    
+    private func updatePlayer(with url: URL) {
+        // If the URL changes, create a new AVPlayer instance
+        player = AVPlayer(url: url)
+        player?.play() // Auto-play the new video
     }
 }
 

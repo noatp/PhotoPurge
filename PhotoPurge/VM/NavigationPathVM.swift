@@ -10,7 +10,7 @@ import Photos
 
 enum NavigationDestination: Hashable {
     case photoDelete([PHAsset]?)
-    case result(Int)
+    case result(DeleteResult)
 }
 
 class NavigationPathVM: ObservableObject {

@@ -210,21 +210,25 @@ class PhotoDeleteVM: ObservableObject {
     func deletePhotoFromDevice() {
         // Ensure we have a valid photo to delete
         guard !assetsToDelete.isEmpty else {
-            navigationPathVM.navigateTo(.result(0))
+            navigationPathVM.navigateTo(.result(DeleteResult()))
             return
         }
         
         PHPhotoLibrary.requestAuthorization(for: .readWrite) { [weak self] accessLevel in
             if accessLevel == .authorized {
                 // Ensure we have valid assets to delete
-                guard let photoAssetsToDelete = self?.assetsToDelete else { return }
+                guard let assetsToDelete = self?.assetsToDelete else { return }
                 
                 // Perform deletion in a safe way
                 PHPhotoLibrary.shared().performChanges({
-                    PHAssetChangeRequest.deleteAssets(photoAssetsToDelete as NSFastEnumeration)
+                    PHAssetChangeRequest.deleteAssets(assetsToDelete as NSFastEnumeration)
                 }) { [weak self] success, error in
                     if success {
-                        self?.navigationPathVM.navigateTo(.result(photoAssetsToDelete.count))
+                        let deleteResult = DeleteResult(
+                            photosDeleted: assetsToDelete.count { $0.mediaType == .image },
+                            videosDeleted: assetsToDelete.count { $0.mediaType == .video }
+                        )
+                        self?.navigationPathVM.navigateTo(.result(deleteResult))
                     } else if let error = error {
 #if DEBUG
                         // Handle error
