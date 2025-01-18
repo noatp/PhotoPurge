@@ -29,14 +29,7 @@ struct MonthPickerView: View {
                         ForEach(monthPickerVM.groupedByYear.keys.sorted(), id: \.self) { year in
                             Section(header: YearHeaderView(year: year)) {
                                 ForEach(monthPickerVM.groupedByYear[year]!.sorted(by: { $0.key < $1.key }), id: \.key) { monthDate, assets in
-                                    HStack {
-                                        Button(Util.getMonthString(from: monthDate)) {
-                                            navigationPathVM.navigateTo(.photoDelete(assets))
-                                        }
-                                        Spacer()
-                                        Text("\(assets.count) photos")
-                                    }
-                                    
+                                    monthRow(monthDate: monthDate, assets: assets)
                                 }
                             }
                         }
@@ -47,7 +40,7 @@ struct MonthPickerView: View {
             .navigationDestination(for: NavigationDestination.self) { destination in
                 switch destination {
                 case .photoDelete(let photoAssets):
-                    PhotoDeleteView(photoAssets: photoAssets, navigationPathVM: navigationPathVM)
+                    PhotoDeleteView(assets: photoAssets, navigationPathVM: navigationPathVM)
                 case .result(let numPhotoDeleted):
                     ResultView(numberOfPhotosRemoved: numPhotoDeleted, navigationPathVM: navigationPathVM)
                 }
@@ -67,6 +60,16 @@ struct MonthPickerView: View {
         .environmentObject(navigationPathVM)
         .task {
             monthPickerVM.getPhotosByMonth()
+        }
+    }
+    
+    private func monthRow(monthDate: Date, assets: [PHAsset]) -> some View {
+        HStack {
+            Button(Util.getMonthString(from: monthDate)) {
+                navigationPathVM.navigateTo(.photoDelete(assets))
+            }
+            Spacer()
+            Text("\(assets.count) items")
         }
     }
 }
