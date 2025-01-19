@@ -9,7 +9,7 @@ import SwiftUI
 import Photos
 
 enum NavigationDestination: Hashable {
-    case photoDelete([PHAsset]?)
+    case photoDelete(AssetsToDelete)
     case result(DeleteResult)
 }
 

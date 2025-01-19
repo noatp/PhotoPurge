@@ -11,18 +11,20 @@ import AVKit
 
 struct PhotoDeleteView: View {   // Use generics to specify the protocol type
     @StateObject var photoDeleteVM: PhotoDeleteVM
+    private let date: Date
     
     init(
-        assets: [PHAsset]?,
+        assetsToDelete: AssetsToDelete,
         navigationPathVM: NavigationPathVM,
         mockPhotoDeleteVM: PhotoDeleteVM? = nil
     ) {
         guard let mockPhotoDeleteVM = mockPhotoDeleteVM else {
-            self._photoDeleteVM = StateObject(wrappedValue: PhotoDeleteVM(assets: assets, navigationPathVM: navigationPathVM))
+            self._photoDeleteVM = StateObject(wrappedValue: PhotoDeleteVM(assets: assetsToDelete.assets, navigationPathVM: navigationPathVM))
+            self.date = assetsToDelete.date
             return
         }
         self._photoDeleteVM = StateObject(wrappedValue: mockPhotoDeleteVM)
-        
+        self.date = Date()
     }
     
     var body: some View {
@@ -54,7 +56,7 @@ struct PhotoDeleteView: View {   // Use generics to specify the protocol type
             }
         }
         .padding(.horizontal)
-        .navigationTitle("Photo")
+        .navigationTitle(Util.getMonthString(from: date))
         .navigationBarTitleDisplayMode(.inline)
         .task {
             photoDeleteVM.fetchNewPhotos()
@@ -194,7 +196,7 @@ struct VideoPlayerWrapper: View {
 #Preview {
     NavigationStack {
         PhotoDeleteView(
-            assets: [],
+            assetsToDelete: .init(date: .init(), assets: []),
             navigationPathVM: .init(),
             mockPhotoDeleteVM: .init(
                 assets: [],
@@ -211,7 +213,7 @@ struct VideoPlayerWrapper: View {
 #Preview {
     NavigationStack {
         PhotoDeleteView(
-            assets: [],
+            assetsToDelete: .init(date: .init(), assets: []),
             navigationPathVM: .init(),
             mockPhotoDeleteVM: .init(
                 assets: [],

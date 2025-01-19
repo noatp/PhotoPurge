@@ -39,8 +39,8 @@ struct MonthPickerView: View {
             .padding()
             .navigationDestination(for: NavigationDestination.self) { destination in
                 switch destination {
-                case .photoDelete(let assets):
-                    PhotoDeleteView(assets: assets, navigationPathVM: navigationPathVM)
+                case .photoDelete(let assetsToDelete):
+                    PhotoDeleteView(assetsToDelete: assetsToDelete, navigationPathVM: navigationPathVM)
                 case .result(let deleteResult):
                     ResultView(deleteResult: deleteResult, navigationPathVM: navigationPathVM)
                 }
@@ -71,7 +71,7 @@ struct MonthPickerView: View {
     private func monthRow(monthDate: Date, assets: [PHAsset]) -> some View {
         HStack {
             Button(Util.getMonthString(from: monthDate)) {
-                navigationPathVM.navigateTo(.photoDelete(assets))
+                navigationPathVM.navigateTo(.photoDelete(.init(date: monthDate, assets: assets)))
             }
             Spacer()
             Text("\(assets.count) " + (assets.count > 1 ? "items" : "item"))
