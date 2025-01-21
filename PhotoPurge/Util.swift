@@ -13,4 +13,10 @@ struct Util {
         formatter.dateFormat = "MMMM, yyyy" // Format: April, 2025
         return formatter.string(from: date)
     }
+    
+    static func startOfMonth(from date: Date) -> Date {
+        let calendar = Calendar.current
+        let components = calendar.dateComponents([.year, .month], from: date)
+        return calendar.date(from: components)!
+    }
 }
