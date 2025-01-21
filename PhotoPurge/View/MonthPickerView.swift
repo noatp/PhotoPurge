@@ -9,72 +9,91 @@ import SwiftUI
 import Photos
 
 struct MonthPickerView: View {
-    @StateObject var monthPickerVM: MonthPickerVM
-    @StateObject var navigationPathVM: NavigationPathVM
+    @StateObject private var monthPickerVM: MonthPickerVM
+    @StateObject private var navigationPathVM: NavigationPathVM = .init()
     
-    init(monthPickerVM: MonthPickerVM = .init()) {
+    private let views: Dependency.Views
+    
+    init(
+        monthPickerVM: MonthPickerVM,
+        views: Dependency.Views
+    ) {
         self._monthPickerVM = StateObject(wrappedValue: monthPickerVM)
-        self._navigationPathVM = StateObject(wrappedValue: NavigationPathVM())
+        self.views = views
     }
     
     var body: some View {
         NavigationStack(path: $navigationPathVM.path) {
-            ZStack {
-                if monthPickerVM.isLoading {
-                    ProgressView()
+            if let isLoading = monthPickerVM.isLoading,
+               let assetsGroupedByMonthYear = monthPickerVM.assetsGroupedByMonthYear
+            {
+                ZStack {
+                    if isLoading {
+                        ProgressView()
+                    }
+                    else {
+                        AssetList(assetsGroupedByMonthYear: assetsGroupedByMonthYear)
+                    }
                 }
-                else {
-                    List {
-                        // Group by year first
-                        ForEach(monthPickerVM.groupedByYear.keys.sorted(), id: \.self) { year in
-                            Section(header: YearHeaderView(year: year)) {
-                                ForEach(monthPickerVM.groupedByYear[year]!.sorted(by: { $0.key < $1.key }), id: \.key) { monthDate, assets in
-                                    monthRow(monthDate: monthDate, assets: assets)
-                                }
-                            }
+                .padding()
+                .navigationDestination(for: NavigationDestination.self) { destination in
+                    switch destination {
+                    case .photoDelete(let assetsToDelete):
+                        PhotoDeleteView(assetsToDelete: assetsToDelete, navigationPathVM: navigationPathVM)
+                    case .result(let deleteResult):
+                        ResultView(deleteResult: deleteResult, navigationPathVM: navigationPathVM)
+                    }
+                }
+                .navigationTitle("Pick a month")
+                .toolbar {
+                    ToolbarItem {
+                        Button {
+                            monthPickerVM.fetchAsset()
+                        } label: {
+                            Text("Reload")
                         }
+                        
                     }
                 }
             }
-            .padding()
-            .navigationDestination(for: NavigationDestination.self) { destination in
-                switch destination {
-                case .photoDelete(let assetsToDelete):
-                    PhotoDeleteView(assetsToDelete: assetsToDelete, navigationPathVM: navigationPathVM)
-                case .result(let deleteResult):
-                    ResultView(deleteResult: deleteResult, navigationPathVM: navigationPathVM)
-                }
-            }
-            .navigationTitle("Pick a month")
-            .toolbar {
-                ToolbarItem {
-                    Button {
-                        monthPickerVM.getPhotosByMonth()
-                    } label: {
-                        Text("Reload")
-                    }
-
-                }
-            }
+            
         }
         .environmentObject(navigationPathVM)
         .task {
-            monthPickerVM.getPhotosByMonth()
+            monthPickerVM.fetchAsset()
         }
         .onChange(of: navigationPathVM.path) { _, newValue in
             if newValue == [] {
-                monthPickerVM.getPhotosByMonth()
+                monthPickerVM.fetchAsset()
             }
         }
     }
+}
+
+struct AssetList: View {
+    let assetsGroupedByMonthYear: [Int: [Date: [PHAsset]]]
     
-    private func monthRow(monthDate: Date, assets: [PHAsset]) -> some View {
-        HStack {
-            Button(Util.getMonthString(from: monthDate)) {
-                navigationPathVM.navigateTo(.photoDelete(.init(date: monthDate, assets: assets)))
+    var body: some View {
+        List {
+            // Group by year first
+            ForEach(assetsGroupedByMonthYear.keys.sorted(), id: \.self) { year in
+                YearSectionView(year: year, assetsGroupedByMonthYear: assetsGroupedByMonthYear)
             }
-            Spacer()
-            Text("\(assets.count) " + (assets.count > 1 ? "items" : "item"))
+        }
+    }
+}
+
+struct YearSectionView: View {
+    let year: Int
+    let assetsGroupedByMonthYear: [Int: [Date: [PHAsset]]]
+
+    var body: some View {
+        Section(header: YearHeaderView(year: year)) {
+            if let months = assetsGroupedByMonthYear[year] {
+                ForEach(months.sorted(by: { $0.key < $1.key }), id: \.key) { monthDate, assets in
+                    MonthRow(date: monthDate, assets: assets)
+                }
+            }
         }
     }
 }
@@ -88,15 +107,37 @@ struct YearHeaderView: View {
     }
 }
 
+struct MonthRow: View {
+    @EnvironmentObject var navigationPathVM: NavigationPathVM
+    
+    let date: Date
+    let assets: [PHAsset]
+    
+    var body: some View {
+        HStack {
+            Button(Util.getMonthString(from: date)) {
+                navigationPathVM.navigateTo(.photoDelete(.init(date: date, assets: assets)))
+            }
+            Spacer()
+            Text("\(assets.count) " + (assets.count > 1 ? "items" : "item"))
+        }
+    }
+}
+
 #Preview {
+    let previewAssetGroupByMonthYear: [Int: [Date: [PHAsset]]] = [2025: [Date(): []]]
+    
     MonthPickerView(
-        monthPickerVM: .init(
-            isLoading: false,
-            groupedByYear: [
-                2025 : [Date(): []],
-                2024 : [Calendar.current.date(byAdding: .year, value: -1, to: Date())!: []]
-            ]
-        )
+        monthPickerVM: .init(isLoading: false, assetsGroupedByMonthYear: previewAssetGroupByMonthYear),
+        views: Dependency.preview.views()
     )
 }
 
+extension Dependency.Views {
+    func monthPickerView() -> MonthPickerView {
+        return MonthPickerView(
+            monthPickerVM: viewModels.monthPickerVM(),
+            views: self
+        )
+    }
+}

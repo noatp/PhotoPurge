@@ -14,7 +14,8 @@ struct ContentView: View {
         if isFirstLaunch {
             WelcomeScreen(isFirstLaunch: $isFirstLaunch)
         } else {
-            MonthPickerView()
+            let dependency = Dependency()
+            dependency.views().monthPickerView()
         }
     }
 }

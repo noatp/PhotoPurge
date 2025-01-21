@@ -8,7 +8,7 @@
 import Foundation
 
 class Dependency {
-    let assetService: AssetService
+    private let assetService: AssetService
     
     init(assetService: AssetService = .init()) {
         self.assetService = assetService
@@ -48,7 +48,7 @@ class Dependency {
         }
     }
     
-    private func views() -> Views {
+    func views() -> Views {
         return Views(viewModels: viewModels())
     }
 }
