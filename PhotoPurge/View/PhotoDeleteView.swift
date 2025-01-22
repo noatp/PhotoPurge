@@ -13,9 +13,7 @@ struct PhotoDeleteView: View {
     @EnvironmentObject var navigationPathVM: NavigationPathVM
     @StateObject private var photoDeleteVM: PhotoDeleteVM
     
-    init(
-        photoDeleteVM: PhotoDeleteVM
-    ) {
+    init(photoDeleteVM: PhotoDeleteVM) {
         self._photoDeleteVM = StateObject(wrappedValue: photoDeleteVM)
     }
     

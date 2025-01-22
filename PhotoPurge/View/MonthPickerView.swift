@@ -43,8 +43,8 @@ struct MonthPickerView: View {
                     switch destination {
                     case .photoDelete:
                         views.photoDeleteView()
-                    case .result(let deleteResult):
-                        ResultView(deleteResult: deleteResult, navigationPathVM: navigationPathVM)
+                    case .result:
+                        views.resultView()
                     }
                 }
                 .navigationTitle("Pick a month")
