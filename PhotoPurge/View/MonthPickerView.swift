@@ -41,7 +41,7 @@ struct MonthPickerView: View {
                 .padding()
                 .navigationDestination(for: NavigationDestination.self) { destination in
                     switch destination {
-                    case .photoDelete(let assetsToDelete):
+                    case .photoDelete:
                         views.photoDeleteView()
                     case .result(let deleteResult):
                         ResultView(deleteResult: deleteResult, navigationPathVM: navigationPathVM)
