@@ -20,7 +20,12 @@ struct PhotoDeleteView: View {
     var body: some View {
         VStack {
             if let assetsGroupedByMonth = photoDeleteVM.assetsGroupedByMonth {
-                MonthPickerRow(assetsGroupedByMonth: assetsGroupedByMonth)
+                MonthPickerRow(
+                    selectedDate: $photoDeleteVM.selectedMonth,
+                    assetsGroupedByMonth: assetsGroupedByMonth
+                ) { month in
+                    photoDeleteVM.selectMonth(date: month)
+                }
             }
             ZStack {
                 if let currentDisplayingAsset = photoDeleteVM.currentDisplayingAsset {

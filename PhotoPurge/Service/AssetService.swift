@@ -11,9 +11,7 @@ import UIKit
 
 class AssetService: ObservableObject {
     @Published var isLoading: Bool?
-    @Published var assetsGroupedByMonthYear: [Int: [Date: [PHAsset]]]?
     @Published var assetsGroupedByMonth: [Date: [PHAsset]]?
-    @Published var assetsByMonth: (Date, [PHAsset])?
     @Published var deleteResult: DeleteResult?
     
     private let imageManager = PHImageManager.default()
@@ -39,32 +37,16 @@ class AssetService: ObservableObject {
         fetchOptions.sortDescriptors = [NSSortDescriptor(key: "creationDate", ascending: true)]
         let assets = PHAsset.fetchAssets(with: fetchOptions)
         
-        // Grouped by Date (Month Start) -> Photos
         var groupedByMonth: [Date: [PHAsset]] = [:]
-        
-        // Grouped by Year -> Month -> Photos
-        var groupedByYearMonth: [Int: [Date: [PHAsset]]] = [:]
         
         assets.enumerateObjects { asset, _, _ in
             if let creationDate = asset.creationDate {
                 let startOfMonth = Util.startOfMonth(from: creationDate)
-                let year = Calendar.current.component(.year, from: creationDate)
-                
-                // Grouping by Date (Month Start)
                 groupedByMonth[startOfMonth, default: []].append(asset)
-                
-                // Grouping by Year -> Month
-                if groupedByYearMonth[year] == nil {
-                    groupedByYearMonth[year] = [:]
-                }
-                groupedByYearMonth[year]?[startOfMonth, default: []].append(asset)
             }
         }
         
-        // Save both groupings
         self.assetsGroupedByMonth = groupedByMonth
-        self.assetsGroupedByMonthYear = groupedByYearMonth
-        
         self.isLoading = false
     }
 
@@ -181,15 +163,5 @@ class AssetService: ObservableObject {
         dispatchGroup.notify(queue: .main) {
             completion(totalSize)
         }
-    }
-    
-    
-    func selectMonthWithDate(_ selectedDate: Date) {
-        guard let assetsGroupedByMonthYear else { return }
-        let selectedYear: Int = Util.getYear(from: selectedDate)
-        guard let assetsOfYear = assetsGroupedByMonthYear[selectedYear],
-              let assets = assetsOfYear[selectedDate]
-        else { return }
-        assetsByMonth = (selectedDate, assets)
     }
 }

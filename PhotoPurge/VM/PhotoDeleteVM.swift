@@ -24,6 +24,7 @@ class PhotoDeleteVM: ObservableObject {
     @Published var shouldShowUndoButton: Bool = false
     @Published var deleteResult: DeleteResult?
     @Published var assetsGroupedByMonth: [Date: [PHAsset]]?
+    @Published var selectedMonth: Date?
     
     private var currentAssetIndex = -1
     private var assets: [PHAsset]?
@@ -65,13 +66,6 @@ class PhotoDeleteVM: ObservableObject {
     }
     
     private func addSubscription() {
-        assetService.$assetsByMonth.sink { [weak self] assetsByMonth in
-            guard let assetsByMonth else { return }
-            self?.assets = assetsByMonth.1
-            self?.title = Util.getMonthString(from: assetsByMonth.0)
-        }
-        .store(in: &subscriptions)
-        
         assetService.$deleteResult.sink { [weak self] deleteResult in
             guard let deleteResult else { return }
             self?.deleteResult = deleteResult
@@ -81,6 +75,8 @@ class PhotoDeleteVM: ObservableObject {
         assetService.$assetsGroupedByMonth.sink { [weak self] assetsGroupedByMonth in
             if let assetsGroupedByMonth = assetsGroupedByMonth {
                 self?.assetsGroupedByMonth = assetsGroupedByMonth
+                guard let oldestMonth = assetsGroupedByMonth.keys.sorted().first else { return }
+                self?.selectMonth(date: oldestMonth)
             }
         }
         .store(in: &subscriptions)
@@ -106,6 +102,15 @@ class PhotoDeleteVM: ObservableObject {
     
     func fetchAssets() {
         assetService.fetchAssets()
+    }
+    
+    func selectMonth(date: Date) {
+        guard let assetsGroupedByMonth = assetsGroupedByMonth,
+              let assets = assetsGroupedByMonth[date] else { return }
+        self.selectedMonth = date
+        self.assets = assets
+        self.currentAssetIndex = -1
+        fetchNewPhotos()
     }
     
     func fetchNewPhotos() {

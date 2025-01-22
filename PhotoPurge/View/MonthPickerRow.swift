@@ -1,53 +1,47 @@
-//
-//  MonthPickerRow.swift
-//  PhotoPurge
-//
-//  Created by Toan Pham on 1/21/25.
-//
-
 import SwiftUI
 import Photos
 
 struct MonthPickerRow: View {
-    private let assetsGroupedByMonth: [Date: [PHAsset]]
-    
-    init(assetsGroupedByMonth: [Date : [PHAsset]]) {
-        self.assetsGroupedByMonth = assetsGroupedByMonth
-    }
+    @Binding var selectedDate: Date?
+    let assetsGroupedByMonth: [Date: [PHAsset]]
+    let selectMonth: (Date) -> Void
     
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             LazyHStack(spacing: 20) {
                 ForEach(assetsGroupedByMonth.keys.sorted(), id: \.self) { date in
-                    MonthPickerButton(date: date, assetsGroupedByMonth: assetsGroupedByMonth)
+                    monthPickerButton(for: date)
+                        .onTapGesture {
+                            selectedDate = date
+                            selectMonth(date)
+                        }
                 }
             }
-            .fixedSize(horizontal: false, vertical: true)
+            .padding(.horizontal)
         }
-    }
-}
-
-struct MonthPickerButton: View {
-    private let date: Date
-    private let assetsGroupedByMonth: [Date: [PHAsset]]
-    
-    init(date: Date, assetsGroupedByMonth: [Date : [PHAsset]]) {
-        self.date = date
-        self.assetsGroupedByMonth = assetsGroupedByMonth
+        .fixedSize(horizontal: false, vertical: true)
     }
     
-    var body: some View {
-        VStack(spacing: 0) {
+    private func monthPickerButton(for date: Date) -> some View {
+        VStack(spacing: 4) {
             Text(Util.getYear(from: date))
                 .font(.headline)
+                .foregroundColor(date == selectedDate ? .white : .primary)
             Text(Util.getShortMonth(from: date))
                 .font(.title2)
                 .padding(.bottom, 5)
+                .foregroundColor(date == selectedDate ? .white : .primary)
             Text("\(assetsGroupedByMonth[date]?.count ?? 0) items")
                 .font(.caption)
+                .foregroundColor(date == selectedDate ? .white : .secondary)
         }
-        .padding(4)
-        .background(RoundedRectangle(cornerRadius: 8).fill(Color.secondary.opacity(0.3)))
+        .padding()
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(date == selectedDate ? Color.blue : Color.secondary.opacity(0.3))
+        )
+        
+        .animation(.easeInOut(duration: 0.3), value: selectedDate)
     }
 }
 
@@ -55,11 +49,12 @@ struct MonthPickerButton: View {
     let today = Date()
     let oneYearAgo = Calendar.current.date(byAdding: .year, value: -1, to: today)!
     
-    // Explicitly define the type of the dictionary
     let assetsGroupedByMonth: [Date: [PHAsset]] = [
         oneYearAgo: [],
         today: []
     ]
     
-    MonthPickerRow(assetsGroupedByMonth: assetsGroupedByMonth)
+    MonthPickerRow(selectedDate: .constant(today), assetsGroupedByMonth: assetsGroupedByMonth) { selectedDate in
+        print(selectedDate)
+    }
 }
