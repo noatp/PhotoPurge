@@ -32,14 +32,17 @@ struct MonthPickerView: View {
                         ProgressView()
                     }
                     else {
-                        AssetList(assetsGroupedByMonthYear: assetsGroupedByMonthYear)
+                        AssetList(assetsGroupedByMonthYear: assetsGroupedByMonthYear) { selectedDate in
+                            monthPickerVM.selectMonthWithDate(selectedDate)
+                            
+                        }
                     }
                 }
                 .padding()
                 .navigationDestination(for: NavigationDestination.self) { destination in
                     switch destination {
                     case .photoDelete(let assetsToDelete):
-                        PhotoDeleteView(assetsToDelete: assetsToDelete, navigationPathVM: navigationPathVM)
+                        views.photoDeleteView()
                     case .result(let deleteResult):
                         ResultView(deleteResult: deleteResult, navigationPathVM: navigationPathVM)
                     }
@@ -72,12 +75,15 @@ struct MonthPickerView: View {
 
 struct AssetList: View {
     let assetsGroupedByMonthYear: [Int: [Date: [PHAsset]]]
+    let selectMonthWithDate: (Date) -> Void
     
     var body: some View {
         List {
             // Group by year first
             ForEach(assetsGroupedByMonthYear.keys.sorted(), id: \.self) { year in
-                YearSectionView(year: year, assetsGroupedByMonthYear: assetsGroupedByMonthYear)
+                YearSectionView(year: year, assetsGroupedByMonthYear: assetsGroupedByMonthYear) { selectedDate in
+                    selectMonthWithDate(selectedDate)
+                }
             }
         }
     }
@@ -86,12 +92,15 @@ struct AssetList: View {
 struct YearSectionView: View {
     let year: Int
     let assetsGroupedByMonthYear: [Int: [Date: [PHAsset]]]
+    let selectMonthWithDate: (Date) -> Void
 
     var body: some View {
         Section(header: YearHeaderView(year: year)) {
             if let months = assetsGroupedByMonthYear[year] {
                 ForEach(months.sorted(by: { $0.key < $1.key }), id: \.key) { monthDate, assets in
-                    MonthRow(date: monthDate, assets: assets)
+                    MonthRow(date: monthDate, assets: assets) { selectedDate in
+                        selectMonthWithDate(selectedDate)
+                    }
                 }
             }
         }
@@ -112,10 +121,12 @@ struct MonthRow: View {
     
     let date: Date
     let assets: [PHAsset]
+    let selectMonthWithDate: (Date) -> Void
     
     var body: some View {
         HStack {
             Button(Util.getMonthString(from: date)) {
+                selectMonthWithDate(date)
                 navigationPathVM.navigateTo(.photoDelete(.init(date: date, assets: assets)))
             }
             Spacer()

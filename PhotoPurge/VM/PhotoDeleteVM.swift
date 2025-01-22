@@ -8,6 +8,7 @@
 import Foundation
 import Photos
 import UIKit
+import Combine
 
 enum LatestAction{
     case delete
@@ -24,7 +25,6 @@ class PhotoDeleteVM: ObservableObject {
     private var currentAssetIndex = -1
     private var assets: [PHAsset]?
     private var assetsToDelete: [PHAsset] = []
-    private let navigationPathVM: NavigationPathVM
     private var pastAction: [LatestAction] = [] {
         didSet {
             DispatchQueue.main.async { [weak self] in
@@ -36,23 +36,36 @@ class PhotoDeleteVM: ObservableObject {
         }
     }
     
+    private let assetService: AssetService
+    private var subscriptions: [AnyCancellable] = []
+    
     init(
-        assets: [PHAsset]?,
-        navigationPathVM: NavigationPathVM,
-        currentDisplayingAsset: DisplayingAsset? = nil,
-        nextImage: UIImage? = nil,
-        subtitle: String = "",
-        shouldShowUndoButton: Bool = false
+        assetService: AssetService
     ) {
-#if DEBUG
-        print("PhotoDeleteVM init")
-#endif
-        self.assets = assets
-        self.navigationPathVM = navigationPathVM
+        self.assetService = assetService
+        self.addSubscription()
+    }
+    
+    init(
+        currentDisplayingAsset: DisplayingAsset?,
+        nextImage: UIImage?,
+        subtitle: String,
+        shouldShowUndoButton: Bool
+    ) {
         self.currentDisplayingAsset = currentDisplayingAsset
         self.nextImage = nextImage
         self.subtitle = subtitle
         self.shouldShowUndoButton = shouldShowUndoButton
+        self.assetService = .init()
+    }
+    
+    private func addSubscription() {
+        assetService.$assetsByMonth.sink { [weak self] assetsByMonth in
+            guard let assetsByMonth else { return }
+            self?.assets = assetsByMonth.1
+            self?.subtitle = Util.getMonthString(from: assetsByMonth.0)
+        }
+        .store(in: &subscriptions)
     }
     
 #if DEBUG
@@ -60,9 +73,7 @@ class PhotoDeleteVM: ObservableObject {
         print("PhotoDeleteVM deinit")
     }
 #endif
-    
-    private let imageManager = PHImageManager.default()
-    
+        
     func keepPhoto() {
         pastAction.append(.keep)
         fetchNewPhotos()
@@ -101,7 +112,7 @@ class PhotoDeleteVM: ObservableObject {
         }
 
         let nextAsset = assets[currentIndex + 1]
-        self.fetchPhotoForAsset(nextAsset) { [weak self] nextImage in
+        assetService.fetchPhotoForAsset(nextAsset) { [weak self] nextImage in
             guard let self = self else { return }
             
             DispatchQueue.main.async {
@@ -117,7 +128,7 @@ class PhotoDeleteVM: ObservableObject {
         let asset = assets[index]
         
         if asset.mediaType == .image {
-            fetchPhotoForAsset(asset) { [weak self] fetchedImage in
+            assetService.fetchPhotoForAsset(asset) { [weak self] fetchedImage in
                 guard let self = self else { return }
                 
                 DispatchQueue.main.async {
@@ -127,7 +138,7 @@ class PhotoDeleteVM: ObservableObject {
             }
         }
         else if asset.mediaType == .video {
-            fetchVideoForAsset(asset) { [weak self] fetchedVideoUrl in
+            assetService.fetchVideoForAsset(asset) { [weak self] fetchedVideoUrl in
                 guard let self = self else { return }
                 DispatchQueue.main.async {
                     self.currentDisplayingAsset = .init(assetType: .video, videoURL: fetchedVideoUrl)
@@ -142,43 +153,6 @@ class PhotoDeleteVM: ObservableObject {
         guard let assets else { return }
         
         subtitle = "\(index + 1) of \(assets.count)"
-    }
-    
-    private func fetchPhotoForAsset(_ asset: PHAsset, completion: @escaping (UIImage?) -> Void) {
-        let options = PHImageRequestOptions()
-        options.isSynchronous = false // Allow asynchronous fetching
-        options.deliveryMode = .opportunistic
-        options.isNetworkAccessAllowed = true
-        
-        imageManager.requestImage(
-            for: asset,
-            targetSize: PHImageManagerMaximumSize,
-            contentMode: .aspectFit,
-            options: options
-        ) { image, info in
-#if DEBUG
-            if let error = info?[PHImageErrorKey] as? NSError {
-                print("Error fetching image: \(error.localizedDescription)")
-            }
-#endif
-            completion(image)
-        }
-    }
-    
-    private func fetchVideoForAsset(_ asset: PHAsset, completion: @escaping (URL?) -> Void) {
-        let options = PHVideoRequestOptions()
-        options.deliveryMode = .fastFormat
-        options.isNetworkAccessAllowed = true
-        
-        imageManager.requestAVAsset(
-            forVideo: asset,
-            options: options) { avAsset, _, _ in
-                if let urlAsset = avAsset as? AVURLAsset {
-                    completion(urlAsset.url)
-                } else {
-                    completion(nil)
-                }
-            }
     }
     
     private func hasNextImage(afterIndex index: Int) -> Bool {
@@ -208,41 +182,20 @@ class PhotoDeleteVM: ObservableObject {
     }
     
     func deletePhotoFromDevice() {
-        // Ensure we have a valid photo to delete
-        guard !assetsToDelete.isEmpty else {
-            navigationPathVM.navigateTo(.result(DeleteResult()))
-            return
-        }
-        
-        PHPhotoLibrary.requestAuthorization(for: .readWrite) { [weak self] accessLevel in
-            if accessLevel == .authorized {
-                // Ensure we have valid assets to delete
-                guard let assetsToDelete = self?.assetsToDelete else { return }
-                
-                // Perform deletion in a safe way
-                PHPhotoLibrary.shared().performChanges({
-                    PHAssetChangeRequest.deleteAssets(assetsToDelete as NSFastEnumeration)
-                }) { [weak self] success, error in
-                    if success {
-                        let deleteResult = DeleteResult(
-                            photosDeleted: assetsToDelete.count { $0.mediaType == .image },
-                            videosDeleted: assetsToDelete.count { $0.mediaType == .video }
-                        )
-                        self?.navigationPathVM.navigateTo(.result(deleteResult))
-                    } else if let error = error {
-#if DEBUG
-                        // Handle error
-                        print("Error deleting photo: \(error.localizedDescription)")
-#endif
-                        
-                    }
-                }
-            } else {
-#if DEBUG
-                print("Access denied to photo library")
-#endif
+        assetService.deleteAssets(assetsToDelete) { [weak self] result in
+            switch result {
+            case .success():
+                self?.shouldNavigateToResult = true
+            case .failure(let error):
+                break
+                //should show alert
             }
         }
     }
 }
 
+extension Dependency.ViewModels {
+    func photoDeleteVM() -> PhotoDeleteVM {
+        return PhotoDeleteVM(assetService: services.assetService)
+    }
+}

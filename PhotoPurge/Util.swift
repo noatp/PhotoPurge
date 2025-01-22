@@ -19,4 +19,9 @@ struct Util {
         let components = calendar.dateComponents([.year, .month], from: date)
         return calendar.date(from: components)!
     }
+    
+    static func getYear(from date: Date) -> Int {
+        let calendar = Calendar.current
+        return calendar.component(.year, from: date)
+    }
 }

@@ -50,6 +50,10 @@ class MonthPickerVM: ObservableObject {
         print("LOAD DATA")
         assetService.fetchAssets()
     }
+    
+    func selectMonthWithDate(_ selectedDate: Date) {
+        assetService.selectMonthWithDate(selectedDate)
+    }
 }
 
 extension Dependency.ViewModels {

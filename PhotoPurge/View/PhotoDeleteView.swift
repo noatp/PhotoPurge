@@ -9,22 +9,13 @@ import SwiftUI
 import Photos
 import AVKit
 
-struct PhotoDeleteView: View {   // Use generics to specify the protocol type
-    @StateObject var photoDeleteVM: PhotoDeleteVM
-    private let date: Date
+struct PhotoDeleteView: View {
+    @StateObject private var photoDeleteVM: PhotoDeleteVM
     
     init(
-        assetsToDelete: AssetsToDelete,
-        navigationPathVM: NavigationPathVM,
-        mockPhotoDeleteVM: PhotoDeleteVM? = nil
+        photoDeleteVM: PhotoDeleteVM
     ) {
-        guard let mockPhotoDeleteVM = mockPhotoDeleteVM else {
-            self._photoDeleteVM = StateObject(wrappedValue: PhotoDeleteVM(assets: assetsToDelete.assets, navigationPathVM: navigationPathVM))
-            self.date = assetsToDelete.date
-            return
-        }
-        self._photoDeleteVM = StateObject(wrappedValue: mockPhotoDeleteVM)
-        self.date = Date()
+        self._photoDeleteVM = StateObject(wrappedValue: photoDeleteVM)
     }
     
     var body: some View {
@@ -56,7 +47,7 @@ struct PhotoDeleteView: View {   // Use generics to specify the protocol type
             }
         }
         .padding(.horizontal)
-        .navigationTitle(Util.getMonthString(from: date))
+//        .navigationTitle(Util.getMonthString(from: date))
         .navigationBarTitleDisplayMode(.inline)
         .task {
             photoDeleteVM.fetchNewPhotos()
@@ -196,11 +187,7 @@ struct VideoPlayerWrapper: View {
 #Preview {
     NavigationStack {
         PhotoDeleteView(
-            assetsToDelete: .init(date: .init(), assets: []),
-            navigationPathVM: .init(),
-            mockPhotoDeleteVM: .init(
-                assets: [],
-                navigationPathVM: NavigationPathVM(),
+            photoDeleteVM: .init(
                 currentDisplayingAsset: .init(assetType: .photo, image: .init(named: "test1")),
                 nextImage: .init(named: "test1"),
                 subtitle: "2 of 3",
@@ -213,11 +200,7 @@ struct VideoPlayerWrapper: View {
 #Preview {
     NavigationStack {
         PhotoDeleteView(
-            assetsToDelete: .init(date: .init(), assets: []),
-            navigationPathVM: .init(),
-            mockPhotoDeleteVM: .init(
-                assets: [],
-                navigationPathVM: NavigationPathVM(),
+            photoDeleteVM: .init(
                 currentDisplayingAsset: .init(assetType: .video, videoURL: .init(string: "https://www.youtube.com/shorts/aeTsXBCZUsI")),
                 nextImage: .init(named: "test2"),
                 subtitle: "2 of 3",
@@ -227,4 +210,10 @@ struct VideoPlayerWrapper: View {
     }
 }
 
-
+extension Dependency.Views {
+    func photoDeleteView() -> PhotoDeleteView {
+        return PhotoDeleteView(
+            photoDeleteVM: viewModels.photoDeleteVM()
+        )
+    }
+}

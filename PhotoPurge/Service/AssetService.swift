@@ -12,6 +12,7 @@ import UIKit
 class AssetService: ObservableObject {
     @Published var isLoading: Bool?
     @Published var assetsGroupedByMonthYear: [Int: [Date: [PHAsset]]]?
+    @Published var assetsByMonth: (Date, [PHAsset])?
     
     private let imageManager = PHImageManager.default()
     
@@ -113,5 +114,14 @@ class AssetService: ObservableObject {
                 completion(.failure(error))
             }
         }
+    }
+    
+    func selectMonthWithDate(_ selectedDate: Date) {
+        guard let assetsGroupedByMonthYear else { return }
+        let selectedYear = Util.getYear(from: selectedDate)
+        guard let assetsOfYear = assetsGroupedByMonthYear[selectedYear],
+              let assets = assetsOfYear[selectedDate]
+        else { return }
+        assetsByMonth = (selectedDate, assets)
     }
 }
