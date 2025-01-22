@@ -56,6 +56,7 @@ struct PhotoDeleteView: View {
         .navigationBarTitleDisplayMode(.inline)
         .task {
             photoDeleteVM.fetchNewPhotos()
+            photoDeleteVM.fetchAssets()
         }
         .onChange(of: photoDeleteVM.deleteResult) { _, newValue in
             guard let deleteResult = newValue else { return }

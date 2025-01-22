@@ -9,13 +9,16 @@ import SwiftUI
 
 struct ContentView: View {
     @State private var isFirstLaunch: Bool = UserDefaults.standard.bool(forKey: "hasLaunchedBefore") == false
+    @StateObject private var navigationPathVM: NavigationPathVM = .init()
 
     var body: some View {
         if isFirstLaunch {
             WelcomeScreen(isFirstLaunch: $isFirstLaunch)
         } else {
             let dependency = Dependency()
-            dependency.views().monthPickerView()
+            NavigationStack(path: $navigationPathVM.path) {
+                dependency.views().photoDeleteView()
+            }
         }
     }
 }

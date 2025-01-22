@@ -104,6 +104,10 @@ class PhotoDeleteVM: ObservableObject {
         fetchNewPhotos()
     }
     
+    func fetchAssets() {
+        assetService.fetchAssets()
+    }
+    
     func fetchNewPhotos() {
         if hasNextImage(afterIndex: currentAssetIndex) {
             currentAssetIndex += 1
