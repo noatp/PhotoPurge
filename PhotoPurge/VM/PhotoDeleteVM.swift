@@ -21,6 +21,7 @@ class PhotoDeleteVM: ObservableObject {
     @Published var shouldNavigateToResult: Bool = false
     @Published var subtitle: String = ""
     @Published var shouldShowUndoButton: Bool = false
+    @Published var deleteResult: DeleteResult?
     
     private var currentAssetIndex = -1
     private var assets: [PHAsset]?
@@ -64,6 +65,12 @@ class PhotoDeleteVM: ObservableObject {
             guard let assetsByMonth else { return }
             self?.assets = assetsByMonth.1
             self?.subtitle = Util.getMonthString(from: assetsByMonth.0)
+        }
+        .store(in: &subscriptions)
+        
+        assetService.$deleteResult.sink { [weak self] deleteResult in
+            guard let deleteResult else { return }
+            self?.deleteResult = deleteResult
         }
         .store(in: &subscriptions)
     }

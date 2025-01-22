@@ -10,6 +10,7 @@ import Photos
 import AVKit
 
 struct PhotoDeleteView: View {
+    @EnvironmentObject var navigationPathVM: NavigationPathVM
     @StateObject private var photoDeleteVM: PhotoDeleteVM
     
     init(
@@ -47,10 +48,15 @@ struct PhotoDeleteView: View {
             }
         }
         .padding(.horizontal)
-//        .navigationTitle(Util.getMonthString(from: date))
+        //        .navigationTitle(Util.getMonthString(from: date))
         .navigationBarTitleDisplayMode(.inline)
         .task {
             photoDeleteVM.fetchNewPhotos()
+        }
+        .onChange(of: photoDeleteVM.deleteResult) { _, newValue in
+            guard let deleteResult = newValue else { return }
+            navigationPathVM.navigateTo(.result(deleteResult))
+            photoDeleteVM.shouldNavigateToResult = false
         }
     }
     
@@ -152,7 +158,7 @@ struct PhotoDeleteView: View {
 struct VideoPlayerWrapper: View {
     let videoURL: URL
     @State private var player: AVPlayer?
-
+    
     var body: some View {
         VideoPlayer(player: player)
             .id(videoURL) // This forces the view to recreate
@@ -166,7 +172,7 @@ struct VideoPlayerWrapper: View {
                 updatePlayer(with: newURL)
             }
     }
-
+    
     private func initializePlayer() {
         player = AVPlayer(url: videoURL)
         player?.play()
