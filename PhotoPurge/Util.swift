@@ -24,4 +24,11 @@ struct Util {
         let calendar = Calendar.current
         return calendar.component(.year, from: date)
     }
+    
+    static func convertByteToHumanReadable(_ bytes:Int64) -> String {
+        let formatter:ByteCountFormatter = ByteCountFormatter()
+        formatter.countStyle = .binary
+        
+        return formatter.string(fromByteCount: Int64(bytes))
+    }
 }

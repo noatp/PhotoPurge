@@ -112,7 +112,6 @@ class AssetService: ObservableObject {
                         videosDeleted: assetsToDelete.count { $0.mediaType == .video },
                         fileSizeDeleted: sizeDeleted
                     )
-                    print(self?.convertByteToHumanReadable(sizeDeleted))
                     completion(.success(()))
                 }
                 
@@ -120,13 +119,6 @@ class AssetService: ObservableObject {
                 completion(.failure(error))
             }
         }
-    }
-    
-    func convertByteToHumanReadable(_ bytes:Int64) -> String {
-        let formatter:ByteCountFormatter = ByteCountFormatter()
-        formatter.countStyle = .binary
-        
-        return formatter.string(fromByteCount: Int64(bytes))
     }
     
     func calculateTotalAssetSize(assets: [PHAsset], completion: @escaping (Int64) -> Void) {

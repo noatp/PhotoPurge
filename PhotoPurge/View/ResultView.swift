@@ -24,7 +24,12 @@ struct ResultView: View {
                 .font(.title2)
             Text("and \(deleteResult.videosDeleted) videos from your library.")
                 .font(.title2)
+                .padding(.bottom)
+            
+            Text("You freed up \(Util.convertByteToHumanReadable(deleteResult.fileSizeDeleted)) of storage.")
+                .font(.title2)
             Spacer()
+            
             // Button to pop the views back to MonthPickerView
             Button(action: {
                 navigationPathVM.popToRoot()
