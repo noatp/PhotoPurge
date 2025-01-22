@@ -20,8 +20,10 @@ class PhotoDeleteVM: ObservableObject {
     @Published var nextImage: UIImage?
     @Published var shouldNavigateToResult: Bool = false
     @Published var subtitle: String = ""
+    @Published var title: String = ""
     @Published var shouldShowUndoButton: Bool = false
     @Published var deleteResult: DeleteResult?
+    @Published var assetsGroupedByMonth: [Date: [PHAsset]]?
     
     private var currentAssetIndex = -1
     private var assets: [PHAsset]?
@@ -50,11 +52,13 @@ class PhotoDeleteVM: ObservableObject {
     init(
         currentDisplayingAsset: DisplayingAsset?,
         nextImage: UIImage?,
+        title: String,
         subtitle: String,
         shouldShowUndoButton: Bool
     ) {
         self.currentDisplayingAsset = currentDisplayingAsset
         self.nextImage = nextImage
+        self.title = title
         self.subtitle = subtitle
         self.shouldShowUndoButton = shouldShowUndoButton
         self.assetService = .init()
@@ -64,13 +68,20 @@ class PhotoDeleteVM: ObservableObject {
         assetService.$assetsByMonth.sink { [weak self] assetsByMonth in
             guard let assetsByMonth else { return }
             self?.assets = assetsByMonth.1
-            self?.subtitle = Util.getMonthString(from: assetsByMonth.0)
+            self?.title = Util.getMonthString(from: assetsByMonth.0)
         }
         .store(in: &subscriptions)
         
         assetService.$deleteResult.sink { [weak self] deleteResult in
             guard let deleteResult else { return }
             self?.deleteResult = deleteResult
+        }
+        .store(in: &subscriptions)
+        
+        assetService.$assetsGroupedByMonth.sink { [weak self] assetsGroupedByMonth in
+            if let assetsGroupedByMonth = assetsGroupedByMonth {
+                self?.assetsGroupedByMonth = assetsGroupedByMonth
+            }
         }
         .store(in: &subscriptions)
     }

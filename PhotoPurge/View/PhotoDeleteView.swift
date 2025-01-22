@@ -18,35 +18,41 @@ struct PhotoDeleteView: View {
     }
     
     var body: some View {
-        ZStack {
-            if let currentDisplayingAsset = photoDeleteVM.currentDisplayingAsset {
-                VStack {
-                    subtitle
-                    Spacer()
-                    currentAsset(currentDisplayingAsset)
-                    Spacer(minLength: 32)
-                    keepDeleteButtonBar
-                }
-                
-                VStack {
-                    Spacer()
-                        .frame(height: 32)
-                    HStack (alignment: .top) {
-                        if photoDeleteVM.shouldShowUndoButton {
-                            undoButton
+        VStack {
+            if let assetsGroupedByMonth = photoDeleteVM.assetsGroupedByMonth {
+                MonthPickerRow(assetsGroupedByMonth: assetsGroupedByMonth)
+            }
+            ZStack {
+                if let currentDisplayingAsset = photoDeleteVM.currentDisplayingAsset {
+                    VStack {
+                        subtitle
+                        Spacer()
+                        currentAsset(currentDisplayingAsset)
+                        Spacer(minLength: 32)
+                        keepDeleteButtonBar
+                    }
+                    
+                    VStack {
+                        Spacer()
+                            .frame(height: 32)
+                        HStack (alignment: .top) {
+                            if photoDeleteVM.shouldShowUndoButton {
+                                undoButton
+                            }
+                            Spacer()
+                            nextImage
                         }
                         Spacer()
-                        nextImage
                     }
-                    Spacer()
+                }
+                else {
+                    progressPanel
                 }
             }
-            else {
-                progressPanel
-            }
         }
+        
         .padding(.horizontal)
-        //        .navigationTitle(Util.getMonthString(from: date))
+        .navigationTitle(photoDeleteVM.title)
         .navigationBarTitleDisplayMode(.inline)
         .task {
             photoDeleteVM.fetchNewPhotos()
@@ -130,8 +136,7 @@ struct PhotoDeleteView: View {
     
     var subtitle: some View {
         Text(photoDeleteVM.subtitle)
-            .font(.title3)
-            .padding(.bottom)
+            .font(.caption)
     }
     
     private func currentAsset(_ displayingAsset: DisplayingAsset) -> some View {
@@ -194,6 +199,7 @@ struct VideoPlayerWrapper: View {
             photoDeleteVM: .init(
                 currentDisplayingAsset: .init(assetType: .photo, image: .init(named: "test1")),
                 nextImage: .init(named: "test1"),
+                title: "January, 2025",
                 subtitle: "2 of 3",
                 shouldShowUndoButton: true
             )
@@ -207,6 +213,7 @@ struct VideoPlayerWrapper: View {
             photoDeleteVM: .init(
                 currentDisplayingAsset: .init(assetType: .video, videoURL: .init(string: "https://www.youtube.com/shorts/aeTsXBCZUsI")),
                 nextImage: .init(named: "test2"),
+                title: "December, 2024",
                 subtitle: "2 of 3",
                 shouldShowUndoButton: true
             )

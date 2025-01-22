@@ -31,4 +31,16 @@ struct Util {
         
         return formatter.string(fromByteCount: Int64(bytes))
     }
+    
+    static func getShortMonth(from date: Date) -> String {
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "MMM"  // Short month format (e.g., "Jan")
+        return dateFormatter.string(from: date)
+    }
+
+    static func getYear(from date: Date) -> String {
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy"  // Full 4-digit year
+        return dateFormatter.string(from: date)
+    }
 }
