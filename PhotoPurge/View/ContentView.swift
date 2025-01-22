@@ -16,8 +16,16 @@ struct ContentView: View {
             WelcomeScreen(isFirstLaunch: $isFirstLaunch)
         } else {
             let dependency = Dependency()
+            let views = dependency.views()
             NavigationStack(path: $navigationPathVM.path) {
                 dependency.views().photoDeleteView()
+                    .environmentObject(navigationPathVM)
+                    .navigationDestination(for: NavigationDestination.self ){ destination in
+                        switch destination {
+                        case .result:
+                            views.resultView()
+                        }
+                    }
             }
         }
     }

@@ -62,9 +62,8 @@ struct PhotoDeleteView: View {
         .task {
             photoDeleteVM.fetchAssets()
         }
-        .onChange(of: photoDeleteVM.deleteResult) { _, newValue in
-            guard let deleteResult = newValue else { return }
-            navigationPathVM.navigateTo(.result(deleteResult))
+        .onChange(of: photoDeleteVM.deleteResult) { _, _ in
+            navigationPathVM.navigateTo(.result)
             photoDeleteVM.shouldNavigateToResult = false
         }
     }
