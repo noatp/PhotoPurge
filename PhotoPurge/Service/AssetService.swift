@@ -20,7 +20,9 @@ class AssetService: ObservableObject {
         PHPhotoLibrary.requestAuthorization(for: .readWrite) { status in
             switch status {
             case .denied:
-                completion(.failure(NSError(domain: "", code: 0, userInfo: nil)))
+                let errorMessage = "Something went wrong. Please try again later."
+                let error = NSError(domain: "com.photo.error", code: 1001, userInfo: [NSLocalizedDescriptionKey: errorMessage])
+                completion(.failure(error))
             case .authorized:
                 completion(.success(()))
             default:

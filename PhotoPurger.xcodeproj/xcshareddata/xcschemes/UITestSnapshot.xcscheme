@@ -20,9 +20,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "CAE4BA9C2D34BFB9007BCF58"
-               BuildableName = "PhotoPurgeUITests.xctest"
-               BlueprintName = "PhotoPurgeUITests"
-               ReferencedContainer = "container:PhotoPurge.xcodeproj">
+               BuildableName = "PhotoPurgerUITests.xctest"
+               BlueprintName = "PhotoPurgerUITests"
+               ReferencedContainer = "container:PhotoPurger.xcodeproj">
             </BuildableReference>
          </TestableReference>
       </Testables>
@@ -42,9 +42,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "CAA84E742D320E3A00260CCC"
-            BuildableName = "PhotoPurge.app"
-            BlueprintName = "PhotoPurge"
-            ReferencedContainer = "container:PhotoPurge.xcodeproj">
+            BuildableName = "PhotoPurger.app"
+            BlueprintName = "PhotoPurger"
+            ReferencedContainer = "container:PhotoPurger.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </LaunchAction>
@@ -58,9 +58,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "CAA84E742D320E3A00260CCC"
-            BuildableName = "PhotoPurge.app"
-            BlueprintName = "PhotoPurge"
-            ReferencedContainer = "container:PhotoPurge.xcodeproj">
+            BuildableName = "PhotoPurger.app"
+            BlueprintName = "PhotoPurger"
+            ReferencedContainer = "container:PhotoPurger.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
    </ProfileAction>

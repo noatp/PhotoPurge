@@ -17,17 +17,17 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		CAA84E752D320E3A00260CCC /* PhotoPurge.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PhotoPurge.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		CAE4BA9D2D34BFB9007BCF58 /* PhotoPurgeUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PhotoPurgeUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		CAA84E752D320E3A00260CCC /* PhotoPurger.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PhotoPurger.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		CAE4BA9D2D34BFB9007BCF58 /* PhotoPurgerUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PhotoPurgerUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		CAA84E872D320F1100260CCC /* Exceptions for "PhotoPurge" folder in "PhotoPurge" target */ = {
+		CAA84E872D320F1100260CCC /* Exceptions for "PhotoPurge" folder in "PhotoPurger" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
 			);
-			target = CAA84E742D320E3A00260CCC /* PhotoPurge */;
+			target = CAA84E742D320E3A00260CCC /* PhotoPurger */;
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
@@ -35,7 +35,7 @@
 		CAA84E772D320E3A00260CCC /* PhotoPurge */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				CAA84E872D320F1100260CCC /* Exceptions for "PhotoPurge" folder in "PhotoPurge" target */,
+				CAA84E872D320F1100260CCC /* Exceptions for "PhotoPurge" folder in "PhotoPurger" target */,
 			);
 			path = PhotoPurge;
 			sourceTree = "<group>";
@@ -77,8 +77,8 @@
 		CAA84E762D320E3A00260CCC /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				CAA84E752D320E3A00260CCC /* PhotoPurge.app */,
-				CAE4BA9D2D34BFB9007BCF58 /* PhotoPurgeUITests.xctest */,
+				CAA84E752D320E3A00260CCC /* PhotoPurger.app */,
+				CAE4BA9D2D34BFB9007BCF58 /* PhotoPurgerUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -86,9 +86,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		CAA84E742D320E3A00260CCC /* PhotoPurge */ = {
+		CAA84E742D320E3A00260CCC /* PhotoPurger */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = CAA84E832D320E3C00260CCC /* Build configuration list for PBXNativeTarget "PhotoPurge" */;
+			buildConfigurationList = CAA84E832D320E3C00260CCC /* Build configuration list for PBXNativeTarget "PhotoPurger" */;
 			buildPhases = (
 				CAA84E712D320E3A00260CCC /* Sources */,
 				CAA84E722D320E3A00260CCC /* Frameworks */,
@@ -101,16 +101,16 @@
 			fileSystemSynchronizedGroups = (
 				CAA84E772D320E3A00260CCC /* PhotoPurge */,
 			);
-			name = PhotoPurge;
+			name = PhotoPurger;
 			packageProductDependencies = (
 			);
 			productName = PhotoPurge;
-			productReference = CAA84E752D320E3A00260CCC /* PhotoPurge.app */;
+			productReference = CAA84E752D320E3A00260CCC /* PhotoPurger.app */;
 			productType = "com.apple.product-type.application";
 		};
-		CAE4BA9C2D34BFB9007BCF58 /* PhotoPurgeUITests */ = {
+		CAE4BA9C2D34BFB9007BCF58 /* PhotoPurgerUITests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = CAE4BAA72D34BFB9007BCF58 /* Build configuration list for PBXNativeTarget "PhotoPurgeUITests" */;
+			buildConfigurationList = CAE4BAA72D34BFB9007BCF58 /* Build configuration list for PBXNativeTarget "PhotoPurgerUITests" */;
 			buildPhases = (
 				CAE4BA992D34BFB9007BCF58 /* Sources */,
 				CAE4BA9A2D34BFB9007BCF58 /* Frameworks */,
@@ -124,11 +124,11 @@
 			fileSystemSynchronizedGroups = (
 				CAE4BA9E2D34BFB9007BCF58 /* PhotoPurgeUITests */,
 			);
-			name = PhotoPurgeUITests;
+			name = PhotoPurgerUITests;
 			packageProductDependencies = (
 			);
 			productName = PhotoPurgeUITests;
-			productReference = CAE4BA9D2D34BFB9007BCF58 /* PhotoPurgeUITests.xctest */;
+			productReference = CAE4BA9D2D34BFB9007BCF58 /* PhotoPurgerUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
 /* End PBXNativeTarget section */
@@ -150,7 +150,7 @@
 					};
 				};
 			};
-			buildConfigurationList = CAA84E702D320E3A00260CCC /* Build configuration list for PBXProject "PhotoPurge" */;
+			buildConfigurationList = CAA84E702D320E3A00260CCC /* Build configuration list for PBXProject "PhotoPurger" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -164,8 +164,8 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				CAA84E742D320E3A00260CCC /* PhotoPurge */,
-				CAE4BA9C2D34BFB9007BCF58 /* PhotoPurgeUITests */,
+				CAA84E742D320E3A00260CCC /* PhotoPurger */,
+				CAE4BA9C2D34BFB9007BCF58 /* PhotoPurgerUITests */,
 			);
 		};
 /* End PBXProject section */
@@ -207,7 +207,7 @@
 /* Begin PBXTargetDependency section */
 		CAE4BAA42D34BFB9007BCF58 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = CAA84E742D320E3A00260CCC /* PhotoPurge */;
+			target = CAA84E742D320E3A00260CCC /* PhotoPurger */;
 			targetProxy = CAE4BAA32D34BFB9007BCF58 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
@@ -351,6 +351,7 @@
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UILaunchStoryboardName = "Launch Screen.storyboard";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -358,7 +359,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = panto.PhotoPurge;
+				PRODUCT_BUNDLE_IDENTIFIER = panto.PhotoPurger;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
@@ -389,6 +390,7 @@
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UILaunchStoryboardName = "Launch Screen.storyboard";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -396,7 +398,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = panto.PhotoPurge;
+				PRODUCT_BUNDLE_IDENTIFIER = panto.PhotoPurger;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
@@ -455,7 +457,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		CAA84E702D320E3A00260CCC /* Build configuration list for PBXProject "PhotoPurge" */ = {
+		CAA84E702D320E3A00260CCC /* Build configuration list for PBXProject "PhotoPurger" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				CAA84E812D320E3C00260CCC /* Debug */,
@@ -464,7 +466,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		CAA84E832D320E3C00260CCC /* Build configuration list for PBXNativeTarget "PhotoPurge" */ = {
+		CAA84E832D320E3C00260CCC /* Build configuration list for PBXNativeTarget "PhotoPurger" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				CAA84E842D320E3C00260CCC /* Debug */,
@@ -473,7 +475,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		CAE4BAA72D34BFB9007BCF58 /* Build configuration list for PBXNativeTarget "PhotoPurgeUITests" */ = {
+		CAE4BAA72D34BFB9007BCF58 /* Build configuration list for PBXNativeTarget "PhotoPurgerUITests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				CAE4BAA52D34BFB9007BCF58 /* Debug */,
