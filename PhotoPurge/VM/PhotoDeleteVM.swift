@@ -16,15 +16,15 @@ enum LatestAction{
 }
 
 class PhotoDeleteVM: ObservableObject {
+    @Published var assetsGroupedByMonth: [Date: [PHAsset]]?
     @Published var currentDisplayingAsset: DisplayingAsset?
     @Published var nextImage: UIImage?
-    @Published var shouldNavigateToResult: Bool = false
-    @Published var subtitle: String = ""
-    @Published var title: String = ""
     @Published var shouldShowUndoButton: Bool = false
-    @Published var assetsGroupedByMonth: [Date: [PHAsset]]?
+    @Published var shouldNavigateToResult: Bool = false
     @Published var selectedMonth: Date?
     @Published var errorMessage: String?
+    @Published var subtitle: String = ""
+    @Published var title: String = ""
     
     private var currentAssetIndex = -1
     private var assets: [PHAsset]?
