@@ -38,12 +38,13 @@ struct PhotoDeleteView: View {
                                 Spacer(minLength: 0)
                                 subtitle
                                     .padding()
-                                keepDeleteButtonBar
+                                if !viewModel.shouldDisableActionButtons {
+                                    keepDeleteButtonBar
+                                }
+                                    
                             }
                             
                             VStack {
-    //                            Spacer()
-    //                                .frame(height: 32)
                                 HStack (alignment: .top) {
                                     if viewModel.shouldShowUndoButton {
                                         undoButton
@@ -55,13 +56,13 @@ struct PhotoDeleteView: View {
                             }
                         }
                         else {
-                            progressPanel
+                            LoadingIndicator()
                         }
                     }
                 }
             }
             else {
-                progressPanel
+                LoadingIndicator()
             }
         }
         .padding()
@@ -88,14 +89,6 @@ struct PhotoDeleteView: View {
         }
         .task {
             viewModel.fetchAssets()
-        }
-    }
-    
-    var progressPanel: some View {
-        VStack {
-            Spacer()
-            ProgressView()
-            Spacer()
         }
     }
     
@@ -185,41 +178,6 @@ struct PhotoDeleteView: View {
     }
 }
 
-struct VideoPlayerWrapper: View {
-    let videoURL: URL
-    @State private var player: AVPlayer?
-    
-    var body: some View {
-        VideoPlayer(player: player)
-            .id(videoURL) // This forces the view to recreate
-            .onAppear {
-                initializePlayer()
-            }
-            .onDisappear {
-                cleanupPlayer()
-            }
-            .onChange(of: videoURL) { _, newURL in
-                updatePlayer(with: newURL)
-            }
-    }
-    
-    private func initializePlayer() {
-        player = AVPlayer(url: videoURL)
-        player?.play()
-    }
-    
-    private func cleanupPlayer() {
-        player?.pause()
-        player = nil
-    }
-    
-    private func updatePlayer(with url: URL) {
-        // If the URL changes, create a new AVPlayer instance
-        player = AVPlayer(url: url)
-        player?.play() // Auto-play the new video
-    }
-}
-
 #Preview {
     let today = Date()
     let oneYearAgo = Calendar.current.date(byAdding: .year, value: -1, to: today)!
@@ -237,6 +195,7 @@ struct VideoPlayerWrapper: View {
                 nextImage: .init(named: "test1"),
                 shouldShowUndoButton: false,
                 shouldNavigateToResult: false,
+                shouldDisableActionButtons: true,
                 selectedMonth: today,
                 errorMessage: nil,
                 subtitle: "2 of 3",

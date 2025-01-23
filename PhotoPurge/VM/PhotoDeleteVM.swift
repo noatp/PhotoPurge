@@ -21,6 +21,7 @@ class PhotoDeleteVM: ObservableObject {
     @Published var nextImage: UIImage?
     @Published var shouldShowUndoButton: Bool = false
     @Published var shouldNavigateToResult: Bool = false
+    @Published var shouldDisableActionButtons: Bool = false
     @Published var selectedMonth: Date?
     @Published var errorMessage: String?
     @Published var subtitle: String = ""
@@ -32,10 +33,11 @@ class PhotoDeleteVM: ObservableObject {
     private var pastAction: [LatestAction] = [] {
         didSet {
             DispatchQueue.main.async { [weak self] in
-                guard let self else {
+                guard let self, let assets else {
                     return
                 }
                 shouldShowUndoButton = pastAction.count > 0
+                shouldDisableActionButtons = pastAction.count >= assets.count
             }
         }
     }
@@ -57,6 +59,7 @@ class PhotoDeleteVM: ObservableObject {
         nextImage: UIImage?,
         shouldShowUndoButton: Bool,
         shouldNavigateToResult: Bool,
+        shouldDisableActionButtons: Bool,
         selectedMonth: Date?,
         errorMessage: String?,
         subtitle: String,
@@ -67,6 +70,7 @@ class PhotoDeleteVM: ObservableObject {
         self.nextImage = nextImage
         self.shouldShowUndoButton = shouldShowUndoButton
         self.shouldNavigateToResult = shouldNavigateToResult
+        self.shouldDisableActionButtons = shouldDisableActionButtons
         self.selectedMonth = selectedMonth
         self.errorMessage = errorMessage
         self.subtitle = subtitle
@@ -94,13 +98,13 @@ class PhotoDeleteVM: ObservableObject {
 #endif
         
     func keepPhoto() {
-        pastAction.append(.keep)
+        pushLastestAction(.keep)
         fetchNewPhotos()
     }
     
     func deletePhoto() {
-        pastAction.append(.delete)
         guard let assets else { return }
+        pushLastestAction(.delete)
         assetsToDelete.append(assets[currentAssetIndex])
         fetchNewPhotos()
     }
@@ -141,6 +145,11 @@ class PhotoDeleteVM: ObservableObject {
         assetsToDelete = []
         pastAction = []
         errorMessage = nil
+    }
+    
+    private func pushLastestAction(_ latestAction: LatestAction) {
+        guard let assets, pastAction.count < assets.count else { return }
+        pastAction.append(latestAction)
     }
     
     private func fetchNextAsset(currentIndex: Int) {
