@@ -25,6 +25,7 @@ class PhotoDeleteVM: ObservableObject {
     @Published var deleteResult: DeleteResult?
     @Published var assetsGroupedByMonth: [Date: [PHAsset]]?
     @Published var selectedMonth: Date?
+    @Published var errorMessage: String?
     
     private var currentAssetIndex = -1
     private var assets: [PHAsset]?
@@ -109,15 +110,15 @@ class PhotoDeleteVM: ObservableObject {
     func selectMonth(date: Date) {
         guard let assetsGroupedByMonth = assetsGroupedByMonth,
               let assets = assetsGroupedByMonth[date] else { return }
+        resetForNewMonth()
         self.selectedMonth = date
         self.assets = assets
-        self.currentAssetIndex = -1
         fetchNewPhotos()
     }
     
     func fetchNewPhotos() {
-        if hasNextImage(afterIndex: currentAssetIndex) {
-            currentAssetIndex += 1
+        currentAssetIndex += 1
+        if isIndexValid(currentAssetIndex){
             fetchAssetAtIndex(currentAssetIndex)
             fetchNextAsset(currentIndex: currentAssetIndex)
         }
@@ -132,8 +133,15 @@ class PhotoDeleteVM: ObservableObject {
         fetchNextAsset(currentIndex: currentAssetIndex)
     }
     
+    func resetForNewMonth() {
+        currentAssetIndex = -1
+        assetsToDelete = []
+        pastAction = []
+        errorMessage = nil
+    }
+    
     private func fetchNextAsset(currentIndex: Int) {
-        guard let assets, hasNextImage(afterIndex: currentIndex) else {
+        guard let assets, isNextIndexValid(currentIndex: currentIndex) else {
             DispatchQueue.main.async {
                 self.nextImage = nil
             }
@@ -151,8 +159,8 @@ class PhotoDeleteVM: ObservableObject {
     }
     
     private func fetchAssetAtIndex(_ index: Int) {
+        guard isIndexValid(index), let assets else { return }
         setSubtitle(withIndex: index)
-        guard let assets, index < assets.count else { return }
         
         let asset = assets[index]
         
@@ -184,9 +192,13 @@ class PhotoDeleteVM: ObservableObject {
         subtitle = "\(index + 1) of \(assets.count)"
     }
     
-    private func hasNextImage(afterIndex index: Int) -> Bool {
-        guard let photoAssets = assets else { return false }
-        return index + 1 < photoAssets.count
+    private func isNextIndexValid(currentIndex index: Int) -> Bool {
+        return isIndexValid(index + 1)
+    }
+    
+    private func isIndexValid(_ index: Int) -> Bool {
+        guard let assets else { return false }
+        return index >= 0 && index < assets.count
     }
     
     private func undoDeletePhoto() {
@@ -216,8 +228,7 @@ class PhotoDeleteVM: ObservableObject {
             case .success():
                 self?.shouldNavigateToResult = true
             case .failure(let error):
-                break
-                //should show alert
+                self?.errorMessage = error.localizedDescription
             }
         }
     }

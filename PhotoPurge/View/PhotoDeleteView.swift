@@ -12,6 +12,7 @@ import AVKit
 struct PhotoDeleteView: View {
     @EnvironmentObject var navigationPathVM: NavigationPathVM
     @ObservedObject private var viewModel: PhotoDeleteVM
+    @State private var shouldShowAlert: Bool = false
     
     init(photoDeleteVM: PhotoDeleteVM) {
         self.viewModel = photoDeleteVM
@@ -65,6 +66,13 @@ struct PhotoDeleteView: View {
         .onChange(of: viewModel.deleteResult) { _, _ in
             navigationPathVM.navigateTo(.result)
             viewModel.shouldNavigateToResult = false
+        }
+        .onChange(of: viewModel.errorMessage, { _, newValue in
+            guard newValue != nil else { return }
+            shouldShowAlert = true
+        })
+        .alert(viewModel.errorMessage ?? "", isPresented: $shouldShowAlert) {
+            
         }
     }
     
