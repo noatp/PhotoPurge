@@ -17,13 +17,12 @@ struct MonthPickerRow: View {
                         }
                 }
             }
-            .padding(.horizontal)
         }
         .fixedSize(horizontal: false, vertical: true)
     }
     
     private func monthPickerButton(for date: Date) -> some View {
-        VStack(spacing: 4) {
+        VStack(spacing: 0) {
             Text(Util.getYear(from: date))
                 .font(.headline)
                 .foregroundColor(date == selectedDate ? .white : .primary)
@@ -31,11 +30,13 @@ struct MonthPickerRow: View {
                 .font(.title2)
                 .padding(.bottom, 5)
                 .foregroundColor(date == selectedDate ? .white : .primary)
+                .padding(.bottom, 4)
             Text("\(assetsGroupedByMonth[date]?.count ?? 0) items")
                 .font(.caption)
                 .foregroundColor(date == selectedDate ? .white : .secondary)
         }
-        .padding()
+        .padding(.horizontal, 32)
+        .padding(.vertical, 8)
         .background(
             RoundedRectangle(cornerRadius: 12)
                 .fill(date == selectedDate ? Color.blue : Color.secondary.opacity(0.3))

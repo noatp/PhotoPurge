@@ -52,17 +52,26 @@ class PhotoDeleteVM: ObservableObject {
     }
     
     init(
+        assetsGroupedByMonth: [Date: [PHAsset]]?,
         currentDisplayingAsset: DisplayingAsset?,
         nextImage: UIImage?,
-        title: String,
+        shouldShowUndoButton: Bool,
+        shouldNavigateToResult: Bool,
+        selectedMonth: Date?,
+        errorMessage: String?,
         subtitle: String,
-        shouldShowUndoButton: Bool
+        title: String
     ) {
+        self.assetsGroupedByMonth = assetsGroupedByMonth
         self.currentDisplayingAsset = currentDisplayingAsset
         self.nextImage = nextImage
-        self.title = title
-        self.subtitle = subtitle
         self.shouldShowUndoButton = shouldShowUndoButton
+        self.shouldNavigateToResult = shouldNavigateToResult
+        self.selectedMonth = selectedMonth
+        self.errorMessage = errorMessage
+        self.subtitle = subtitle
+        self.title = title
+
         self.assetService = .init()
     }
     
@@ -70,6 +79,7 @@ class PhotoDeleteVM: ObservableObject {
         assetService.$assetsGroupedByMonth.sink { [weak self] assetsGroupedByMonth in
             if let assetsGroupedByMonth = assetsGroupedByMonth {
                 self?.assetsGroupedByMonth = assetsGroupedByMonth
+                guard self?.selectedMonth == nil else { return }
                 guard let oldestMonth = assetsGroupedByMonth.keys.sorted().first else { return }
                 self?.selectMonth(date: oldestMonth)
             }
@@ -216,12 +226,16 @@ class PhotoDeleteVM: ObservableObject {
     }
     
     func deletePhotoFromDevice() {
-        assetService.deleteAssets(assetsToDelete) { [weak self] result in
+        assetService.deleteAssets(assetsToDelete) { result in
             switch result {
             case .success():
-                self?.shouldNavigateToResult = true
+                DispatchQueue.main.async { [weak self] in
+                    self?.shouldNavigateToResult = true
+                }
             case .failure(let error):
-                self?.errorMessage = error.localizedDescription
+                DispatchQueue.main.async { [weak self] in
+                    self?.errorMessage = error.localizedDescription
+                }
             }
         }
     }

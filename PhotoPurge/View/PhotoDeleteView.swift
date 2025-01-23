@@ -19,50 +19,61 @@ struct PhotoDeleteView: View {
     }
     
     var body: some View {
-        VStack {
+        Group {
             if let assetsGroupedByMonth = viewModel.assetsGroupedByMonth {
-                MonthPickerRow(
-                    selectedDate: $viewModel.selectedMonth,
-                    assetsGroupedByMonth: assetsGroupedByMonth
-                ) { month in
-                    viewModel.selectMonth(date: month)
+                VStack {
+                    MonthPickerRow(
+                        selectedDate: $viewModel.selectedMonth,
+                        assetsGroupedByMonth: assetsGroupedByMonth
+                    ) { month in
+                        viewModel.selectMonth(date: month)
+                    }
+                    Divider()
+                        .padding()
+                    ZStack {
+                        if let currentDisplayingAsset = viewModel.currentDisplayingAsset {
+                            VStack {
+                                Spacer()
+                                currentAsset(currentDisplayingAsset)
+                                Spacer(minLength: 0)
+                                subtitle
+                                    .padding()
+                                keepDeleteButtonBar
+                            }
+                            
+                            VStack {
+    //                            Spacer()
+    //                                .frame(height: 32)
+                                HStack (alignment: .top) {
+                                    if viewModel.shouldShowUndoButton {
+                                        undoButton
+                                    }
+                                    Spacer()
+                                    nextImage
+                                }
+                                Spacer()
+                            }
+                        }
+                        else {
+                            progressPanel
+                        }
+                    }
                 }
             }
-            ZStack {
-                if let currentDisplayingAsset = viewModel.currentDisplayingAsset {
-                    VStack {
-                        subtitle
-                        Spacer()
-                        currentAsset(currentDisplayingAsset)
-                        Spacer(minLength: 32)
-                        keepDeleteButtonBar
-                    }
-                    
-                    VStack {
-                        Spacer()
-                            .frame(height: 32)
-                        HStack (alignment: .top) {
-                            if viewModel.shouldShowUndoButton {
-                                undoButton
-                            }
-                            Spacer()
-                            nextImage
-                        }
-                        Spacer()
-                    }
-                }
-                else {
-                    progressPanel
-                }
+            else {
+                progressPanel
             }
         }
-        
-        .padding(.horizontal)
+        .padding()
         .navigationTitle(viewModel.title)
         .navigationBarTitleDisplayMode(.inline)
-        .task {
-            viewModel.fetchAssets()
-        }
+        .toolbar(content: {
+            ToolbarItem {
+                Button("Reload") {
+                    viewModel.fetchAssets()
+                }
+            }
+        })
         .onChange(of: viewModel.shouldNavigateToResult) { _, newValue in
             guard newValue else { return }
             navigationPathVM.navigateTo(.result)
@@ -73,7 +84,10 @@ struct PhotoDeleteView: View {
             shouldShowAlert = true
         })
         .alert(viewModel.errorMessage ?? "", isPresented: $shouldShowAlert) {
-            
+            Button("OK", role: .cancel) { }
+        }
+        .task {
+            viewModel.fetchAssets()
         }
     }
     
@@ -207,28 +221,26 @@ struct VideoPlayerWrapper: View {
 }
 
 #Preview {
+    let today = Date()
+    let oneYearAgo = Calendar.current.date(byAdding: .year, value: -1, to: today)!
+    
+    let assetsGroupedByMonth: [Date: [PHAsset]] = [
+        oneYearAgo: [],
+        today: []
+    ]
+    
     NavigationStack {
         PhotoDeleteView(
             photoDeleteVM: .init(
-                currentDisplayingAsset: .init(assetType: .photo, image: .init(named: "test1")),
+                assetsGroupedByMonth: assetsGroupedByMonth,
+                currentDisplayingAsset: .init(assetType: .photo, image: .init(named: "test2")),
                 nextImage: .init(named: "test1"),
-                title: "January, 2025",
+                shouldShowUndoButton: false,
+                shouldNavigateToResult: false,
+                selectedMonth: today,
+                errorMessage: nil,
                 subtitle: "2 of 3",
-                shouldShowUndoButton: true
-            )
-        )
-    }
-}
-
-#Preview {
-    NavigationStack {
-        PhotoDeleteView(
-            photoDeleteVM: .init(
-                currentDisplayingAsset: .init(assetType: .video, videoURL: .init(string: "https://www.youtube.com/shorts/aeTsXBCZUsI")),
-                nextImage: .init(named: "test2"),
-                title: "December, 2024",
-                subtitle: "2 of 3",
-                shouldShowUndoButton: true
+                title: Util.getMonthString(from: today)
             )
         )
     }
