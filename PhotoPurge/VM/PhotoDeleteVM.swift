@@ -147,6 +147,20 @@ class PhotoDeleteVM: ObservableObject {
         errorMessage = nil
     }
     
+    func resetErrorMessage() {
+        errorMessage = nil
+    }
+    
+    func undoLatestAction() {
+        let latestAction = pastAction.removeLast()
+        switch latestAction {
+        case .delete:
+            undoDeletePhoto()
+        case .keep:
+            backtrack()
+        }
+    }
+    
     private func pushLastestAction(_ latestAction: LatestAction) {
         guard let assets, pastAction.count < assets.count else { return }
         pastAction.append(latestAction)
@@ -161,12 +175,20 @@ class PhotoDeleteVM: ObservableObject {
         }
 
         let nextAsset = assets[currentIndex + 1]
-        assetService.fetchPhotoForAsset(nextAsset) { [weak self] nextImage in
+        assetService.fetchPhotoForAsset(nextAsset) { [weak self] result in
             guard let self = self else { return }
             
-            DispatchQueue.main.async {
-                self.nextImage = nextImage
+            switch result {
+            case .success(let image):
+                DispatchQueue.main.async {
+                    self.nextImage = image
+                }
+            case .failure(let error):
+                DispatchQueue.main.async {
+                    self.errorMessage = error.localizedDescription
+                }
             }
+            
         }
     }
     
@@ -177,21 +199,38 @@ class PhotoDeleteVM: ObservableObject {
         let asset = assets[index]
         
         if asset.mediaType == .image {
-            assetService.fetchPhotoForAsset(asset) { [weak self] fetchedImage in
+            assetService.fetchPhotoForAsset(asset) { [weak self] result in
                 guard let self = self else { return }
                 
-                DispatchQueue.main.async {
-                    self.currentDisplayingAsset = .init(assetType: .photo, image: fetchedImage)
+                switch result {
+                case .success(let image):
+                    DispatchQueue.main.async {
+                        self.currentDisplayingAsset = .init(assetType: .photo, image: image)
+                    }
+                case .failure(let error):
+                    DispatchQueue.main.async {
+                        self.errorMessage = error.localizedDescription
+                    }
                 }
+                
                 
             }
         }
         else if asset.mediaType == .video {
-            assetService.fetchVideoForAsset(asset) { [weak self] fetchedVideoUrl in
+            assetService.fetchVideoForAsset(asset) { [weak self] result in
                 guard let self = self else { return }
-                DispatchQueue.main.async {
-                    self.currentDisplayingAsset = .init(assetType: .video, videoURL: fetchedVideoUrl)
+                
+                switch result {
+                case .success(let videoURL):
+                    DispatchQueue.main.async {
+                        self.currentDisplayingAsset = .init(assetType: .video, videoURL: videoURL)
+                    }
+                case .failure(let error):
+                    DispatchQueue.main.async {
+                        self.errorMessage = error.localizedDescription
+                    }
                 }
+                
             }
         }
         
@@ -223,18 +262,8 @@ class PhotoDeleteVM: ObservableObject {
     private func backtrack() {
         fetchPreviousPhotos()
     }
-    
-    func undoLatestAction() {
-        let latestAction = pastAction.removeLast()
-        switch latestAction {
-        case .delete:
-            undoDeletePhoto()
-        case .keep:
-            backtrack()
-        }
-    }
-    
-    func deletePhotoFromDevice() {
+        
+    private func deletePhotoFromDevice() {
         assetService.deleteAssets(assetsToDelete) { result in
             switch result {
             case .success():

@@ -20,13 +20,15 @@ class AssetService: ObservableObject {
         PHPhotoLibrary.requestAuthorization(for: .readWrite) { status in
             switch status {
             case .denied:
-                let errorMessage = "Something went wrong. Please try again later."
-                let error = NSError(domain: "com.photo.error", code: 1001, userInfo: [NSLocalizedDescriptionKey: errorMessage])
+                let errorMessage = "Access to photos is denied. Please go to Settings > Privacy > Photos to enable access."
+                let error = NSError(domain: "com.panto.photopurger.error", code: 1001, userInfo: [NSLocalizedDescriptionKey: errorMessage])
                 completion(.failure(error))
             case .authorized:
                 completion(.success(()))
             default:
-                break
+                let errorMessage = "Access to photos is not fully authorized. Please go to Settings > Privacy > Photos to enable access."
+                let error = NSError(domain: "com.panto.photopurger.error", code: 1002, userInfo: [NSLocalizedDescriptionKey: errorMessage])
+                completion(.failure(error))
             }
         }
     }
@@ -46,14 +48,18 @@ class AssetService: ObservableObject {
                 let startOfMonth = Util.startOfMonth(from: creationDate)
                 groupedByMonth[startOfMonth, default: []].append(asset)
             }
+            else {
+#if DEBUG
+                print("Warning: Asset has no creation date.")
+#endif
+            }
         }
         
         self.assetsGroupedByMonth = groupedByMonth
         self.isLoading = false
     }
-
     
-    func fetchPhotoForAsset(_ asset: PHAsset, completion: @escaping (UIImage?) -> Void) {
+    func fetchPhotoForAsset(_ asset: PHAsset, completion: @escaping (Result<UIImage, Error>) -> Void) {
         let options = PHImageRequestOptions()
         options.isSynchronous = false // Allow asynchronous fetching
         options.deliveryMode = .opportunistic
@@ -65,16 +71,21 @@ class AssetService: ObservableObject {
             contentMode: .aspectFit,
             options: options
         ) { image, info in
-#if DEBUG
-            if let error = info?[PHImageErrorKey] as? NSError {
-                print("Error fetching image: \(error.localizedDescription)")
+            if let fetchError = info?[PHImageErrorKey] as? NSError {
+                let errorMessage = "An issue occurred while fetching the image: \(fetchError.localizedDescription)"
+                let error = NSError(domain: "com.panto.photopurger.error", code: 1003, userInfo: [NSLocalizedDescriptionKey: errorMessage])
+                completion(.failure(error))
+            } else if let image = image {
+                completion(.success(image))
+            } else {
+                let errorMessage = "An issue occurred while fetching the image."
+                let error = NSError(domain: "com.panto.photopurger.error", code: 1004, userInfo: [NSLocalizedDescriptionKey: errorMessage])
+                completion(.failure(error))
             }
-#endif
-            completion(image)
         }
     }
     
-    func fetchVideoForAsset(_ asset: PHAsset, completion: @escaping (URL?) -> Void) {
+    func fetchVideoForAsset(_ asset: PHAsset, completion: @escaping (Result<URL, Error>) -> Void) {
         let options = PHVideoRequestOptions()
         options.deliveryMode = .fastFormat
         options.isNetworkAccessAllowed = true
@@ -83,45 +94,58 @@ class AssetService: ObservableObject {
             forVideo: asset,
             options: options) { avAsset, _, _ in
                 if let urlAsset = avAsset as? AVURLAsset {
-                    completion(urlAsset.url)
+                    // If successfully fetched, pass the URL to completion as success
+                    completion(.success(urlAsset.url))
                 } else {
-                    completion(nil)
+                    let errorMessage = "An issue occurred while fetching the video."
+                    let error = NSError(domain: "com.panto.photopurger.error", code: 1005, userInfo: [NSLocalizedDescriptionKey: errorMessage])
+                    completion(.failure(error))
                 }
             }
     }
+
     
     func deleteAssets(_ assetsToDelete: [PHAsset], completion: @escaping (Result<Void, Error>) -> Void) {
         // Ensure we have a valid photo to delete
         guard !assetsToDelete.isEmpty else {
-            completion(.failure(NSError(domain: "", code: 0, userInfo: nil)))
+            let errorMessage = "You have not selected any photos to delete."
+            let error = NSError(domain: "com.panto.photopurger.error", code: 1006, userInfo: [NSLocalizedDescriptionKey: errorMessage])
+            completion(.failure(error))
             return
         }
         
         // Perform deletion in a safe way
         PHPhotoLibrary.shared().performChanges({
             PHAssetChangeRequest.deleteAssets(assetsToDelete as NSFastEnumeration)
-        }) { [weak self] success, error in
+        }) { [weak self] success, deleteError in
             if success {
                 print("delete success")
-                self?.calculateTotalAssetSize(assets: assetsToDelete) { [weak self] sizeDeleted in
-                    self?.deleteResult = DeleteResult(
-                        photosDeleted: assetsToDelete.count { $0.mediaType == .image },
-                        videosDeleted: assetsToDelete.count { $0.mediaType == .video },
-                        fileSizeDeleted: sizeDeleted
-                    )
-                    completion(.success(()))
+                self?.calculateTotalAssetSize(assets: assetsToDelete) { [weak self] result in
+                    switch result {
+                    case .success(let sizeDeleted):
+                        self?.deleteResult = DeleteResult(
+                            photosDeleted: assetsToDelete.count { $0.mediaType == .image },
+                            videosDeleted: assetsToDelete.count { $0.mediaType == .video },
+                            fileSizeDeleted: sizeDeleted
+                        )
+                        completion(.success(()))
+                    case .failure(let error):
+                        completion(.failure(error))
+                    }
                 }
                 
-            } else if let error = error {
-                print("delete failed")
+            } else if let deleteError = deleteError {
+                let errorMessage = "An issue occurred while deleting the photos: \(deleteError.localizedDescription)"
+                let error = NSError(domain: "com.panto.photopurger.error", code: 1007, userInfo: [NSLocalizedDescriptionKey: errorMessage])
                 completion(.failure(error))
             }
         }
     }
     
-    func calculateTotalAssetSize(assets: [PHAsset], completion: @escaping (Int64) -> Void) {
+    func calculateTotalAssetSize(assets: [PHAsset], completion: @escaping (Result<Int64, Error>) -> Void) {
         var totalSize: Int64 = 0
         let dispatchGroup = DispatchGroup()
+        var encounteredError: Error?
         
         for asset in assets {
             if asset.mediaType == .image {
@@ -134,7 +158,7 @@ class AssetService: ObservableObject {
                         totalSize += Int64(data.count)
                         print("Image size: \(data.count) bytes")
                     } else {
-                        print("Failed to fetch image data or image is not available")
+                        encounteredError = NSError(domain: "com.panto.photopurger.error", code: 1008, userInfo: [NSLocalizedDescriptionKey: "Failed to fetch image data or image is not available"])
                     }
                     dispatchGroup.leave()
                 }
@@ -145,7 +169,6 @@ class AssetService: ObservableObject {
                 dispatchGroup.enter()
                 imageManager.requestAVAsset(forVideo: asset, options: options) { asset, _, _ in
                     if let avAsset = asset as? AVURLAsset {
-                        // Now we have the AVURLAsset, and we can fetch its size
                         let fileURL = avAsset.url
                         do {
                             let attributes = try FileManager.default.attributesOfItem(atPath: fileURL.path)
@@ -153,11 +176,11 @@ class AssetService: ObservableObject {
                                 totalSize += fileSize.int64Value
                                 print("Video size: \(fileSize.int64Value) bytes")
                             }
-                        } catch {
-                            print("Failed to fetch file size for video: \(error.localizedDescription)")
+                        } catch let requestError {
+                            encounteredError = NSError(domain: "com.panto.photopurger.error", code: 1009, userInfo: [NSLocalizedDescriptionKey: "Failed to fetch AVAsset for video: \(requestError.localizedDescription)"])
                         }
                     } else {
-                        print("Failed to fetch AVAsset for video")
+                        encounteredError = NSError(domain: "com.panto.photopurger.error", code: 1010, userInfo: [NSLocalizedDescriptionKey: "Failed to fetch AVAsset for video"])
                     }
                     dispatchGroup.leave()
                 }
@@ -165,7 +188,12 @@ class AssetService: ObservableObject {
         }
         
         dispatchGroup.notify(queue: .main) {
-            completion(totalSize)
+            if let error = encounteredError {
+                completion(.failure(error))
+            } else {
+                completion(.success(totalSize))
+            }
         }
     }
+
 }

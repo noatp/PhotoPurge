@@ -113,7 +113,7 @@ struct PhotoDeleteView: View {
             shouldShowAlert = true
         })
         .alert(viewModel.errorMessage ?? "", isPresented: $shouldShowAlert) {
-            Button("OK", role: .cancel) { }
+            Button("OK", role: .cancel) { viewModel.resetErrorMessage() }
         }
         .task {
             viewModel.fetchAssets()
