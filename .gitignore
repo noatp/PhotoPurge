@@ -3,3 +3,4 @@ PhotoPurge.xcodeproj/xcuserdata/toanpham.xcuserdatad/xcdebugger/Breakpoints_v2.x
 Gemfile
 Gemfile.lock
 fastlane/*
+*.xcbkptlist
