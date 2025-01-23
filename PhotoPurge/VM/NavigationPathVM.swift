@@ -9,8 +9,7 @@ import SwiftUI
 import Photos
 
 enum NavigationDestination: Hashable {
-    case photoDelete(AssetsToDelete)
-    case result(DeleteResult)
+    case result
 }
 
 class NavigationPathVM: ObservableObject {

@@ -11,7 +11,8 @@ import SwiftUI
 struct PhotoPurgeApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            let dependency = Dependency()
+            ContentView(views: dependency.views())
         }
     }
 }
