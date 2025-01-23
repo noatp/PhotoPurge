@@ -100,6 +100,7 @@ class AssetService: ObservableObject {
             PHAssetChangeRequest.deleteAssets(assetsToDelete as NSFastEnumeration)
         }) { [weak self] success, error in
             if success {
+                print("delete success")
                 self?.calculateTotalAssetSize(assets: assetsToDelete) { [weak self] sizeDeleted in
                     self?.deleteResult = DeleteResult(
                         photosDeleted: assetsToDelete.count { $0.mediaType == .image },
@@ -110,6 +111,7 @@ class AssetService: ObservableObject {
                 }
                 
             } else if let error = error {
+                print("delete failed")
                 completion(.failure(error))
             }
         }

@@ -9,15 +9,15 @@ import SwiftUI
 
 struct ResultView: View {
     @EnvironmentObject var navigationPathVM: NavigationPathVM
-    @StateObject private var resultVM: ResultVM
+    @ObservedObject private var viewModel: ResultVM
     
     init(resultVM: ResultVM) {
-        self._resultVM = StateObject(wrappedValue: resultVM)
+        self.viewModel = resultVM
     }
     
     var body: some View {
         VStack {
-            if let deleteResult = resultVM.deleteResult {
+            if let deleteResult = viewModel.deleteResult {
                 Spacer()
                 Text("You have removed \(deleteResult.photosDeleted) photos,")
                     .font(.title2)

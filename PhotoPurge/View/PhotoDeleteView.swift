@@ -11,24 +11,24 @@ import AVKit
 
 struct PhotoDeleteView: View {
     @EnvironmentObject var navigationPathVM: NavigationPathVM
-    @StateObject private var photoDeleteVM: PhotoDeleteVM
+    @ObservedObject private var viewModel: PhotoDeleteVM
     
     init(photoDeleteVM: PhotoDeleteVM) {
-        self._photoDeleteVM = StateObject(wrappedValue: photoDeleteVM)
+        self.viewModel = photoDeleteVM
     }
     
     var body: some View {
         VStack {
-            if let assetsGroupedByMonth = photoDeleteVM.assetsGroupedByMonth {
+            if let assetsGroupedByMonth = viewModel.assetsGroupedByMonth {
                 MonthPickerRow(
-                    selectedDate: $photoDeleteVM.selectedMonth,
+                    selectedDate: $viewModel.selectedMonth,
                     assetsGroupedByMonth: assetsGroupedByMonth
                 ) { month in
-                    photoDeleteVM.selectMonth(date: month)
+                    viewModel.selectMonth(date: month)
                 }
             }
             ZStack {
-                if let currentDisplayingAsset = photoDeleteVM.currentDisplayingAsset {
+                if let currentDisplayingAsset = viewModel.currentDisplayingAsset {
                     VStack {
                         subtitle
                         Spacer()
@@ -41,7 +41,7 @@ struct PhotoDeleteView: View {
                         Spacer()
                             .frame(height: 32)
                         HStack (alignment: .top) {
-                            if photoDeleteVM.shouldShowUndoButton {
+                            if viewModel.shouldShowUndoButton {
                                 undoButton
                             }
                             Spacer()
@@ -57,14 +57,14 @@ struct PhotoDeleteView: View {
         }
         
         .padding(.horizontal)
-        .navigationTitle(photoDeleteVM.title)
+        .navigationTitle(viewModel.title)
         .navigationBarTitleDisplayMode(.inline)
         .task {
-            photoDeleteVM.fetchAssets()
+            viewModel.fetchAssets()
         }
-        .onChange(of: photoDeleteVM.deleteResult) { _, _ in
+        .onChange(of: viewModel.deleteResult) { _, _ in
             navigationPathVM.navigateTo(.result)
-            photoDeleteVM.shouldNavigateToResult = false
+            viewModel.shouldNavigateToResult = false
         }
     }
     
@@ -78,7 +78,7 @@ struct PhotoDeleteView: View {
     
     var undoButton: some View {
         Button {
-            photoDeleteVM.undoLatestAction()
+            viewModel.undoLatestAction()
         } label: {
             Image(systemName: "arrow.uturn.backward")
                 .resizable()
@@ -94,7 +94,7 @@ struct PhotoDeleteView: View {
     var keepDeleteButtonBar: some View {
         HStack {
             Button {
-                photoDeleteVM.keepPhoto()
+                viewModel.keepPhoto()
             } label: {
                 Image(systemName: "checkmark")
                     .resizable()
@@ -109,7 +109,7 @@ struct PhotoDeleteView: View {
             Spacer()
             
             Button {
-                photoDeleteVM.deletePhoto()
+                viewModel.deletePhoto()
             } label: {
                 Image(systemName: "trash")
                     .resizable()
@@ -125,7 +125,7 @@ struct PhotoDeleteView: View {
     
     var nextImage: some View {
         Group {
-            if let nextImageUIImage = photoDeleteVM.nextImage {
+            if let nextImageUIImage = viewModel.nextImage {
                 Image(uiImage: nextImageUIImage)
                     .resizable()
                     .scaledToFill()
@@ -139,7 +139,7 @@ struct PhotoDeleteView: View {
     }
     
     var subtitle: some View {
-        Text(photoDeleteVM.subtitle)
+        Text(viewModel.subtitle)
             .font(.caption)
     }
     

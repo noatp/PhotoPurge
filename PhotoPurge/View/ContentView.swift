@@ -10,16 +10,18 @@ import SwiftUI
 struct ContentView: View {
     @State private var isFirstLaunch: Bool = UserDefaults.standard.bool(forKey: "hasLaunchedBefore") == false
     @StateObject private var navigationPathVM: NavigationPathVM = .init()
+    private let views: Dependency.Views
+    
+    init(views: Dependency.Views) {
+        self.views = views
+    }
 
     var body: some View {
         if isFirstLaunch {
             WelcomeScreen(isFirstLaunch: $isFirstLaunch)
         } else {
-            let dependency = Dependency()
-            let views = dependency.views()
             NavigationStack(path: $navigationPathVM.path) {
-                dependency.views().photoDeleteView()
-                    .environmentObject(navigationPathVM)
+                views.photoDeleteView()
                     .navigationDestination(for: NavigationDestination.self ){ destination in
                         switch destination {
                         case .result:
@@ -27,10 +29,11 @@ struct ContentView: View {
                         }
                     }
             }
+            .environmentObject(navigationPathVM)
         }
     }
 }
 
 #Preview {
-    ContentView()
+    ContentView(views: Dependency.preview.views())
 }
