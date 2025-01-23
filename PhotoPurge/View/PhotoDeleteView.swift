@@ -34,12 +34,31 @@ struct PhotoDeleteView: View {
                         if let currentDisplayingAsset = viewModel.currentDisplayingAsset {
                             VStack {
                                 Spacer()
-                                currentAsset(currentDisplayingAsset)
+                                CurrentAssetDisplay(displayingAsset: currentDisplayingAsset)
                                 Spacer(minLength: 0)
-                                subtitle
+                                Text(viewModel.subtitle)
+                                    .font(.caption)
                                     .padding()
                                 if !viewModel.shouldDisableActionButtons {
-                                    keepDeleteButtonBar
+                                    HStack {
+                                        IconActionButton(
+                                            iconName: "checkmark",
+                                            backgroundColor: .green,
+                                            foregroundColor: .white
+                                        ) {
+                                            viewModel.keepPhoto()
+                                        }
+                                        
+                                        Spacer()
+                                        
+                                        IconActionButton(
+                                            iconName: "trash",
+                                            backgroundColor: .red,
+                                            foregroundColor: .white
+                                        ) {
+                                                viewModel.deletePhoto()
+                                        }
+                                    }
                                 }
                                     
                             }
@@ -47,10 +66,19 @@ struct PhotoDeleteView: View {
                             VStack {
                                 HStack (alignment: .top) {
                                     if viewModel.shouldShowUndoButton {
-                                        undoButton
+                                        UndoButton {
+                                            viewModel.undoLatestAction()
+                                        }
                                     }
                                     Spacer()
-                                    nextImage
+                                    if let nextImageUIImage = viewModel.nextImage {
+                                        Image(uiImage: nextImageUIImage)
+                                            .resizable()
+                                            .scaledToFill()
+                                            .frame(maxWidth: 100, maxHeight: 100)
+                                            .clipped()
+                                            .cornerRadius(8)
+                                    }
                                 }
                                 Spacer()
                             }
@@ -91,91 +119,6 @@ struct PhotoDeleteView: View {
             viewModel.fetchAssets()
         }
     }
-    
-    var undoButton: some View {
-        Button {
-            viewModel.undoLatestAction()
-        } label: {
-            Image(systemName: "arrow.uturn.backward")
-                .resizable()
-                .scaledToFit()
-                .frame(width: 30, height: 30)
-                .foregroundColor(.white)
-                .padding()
-        }
-        .background(Color.gray)
-        .cornerRadius(8)
-    }
-    
-    var keepDeleteButtonBar: some View {
-        HStack {
-            Button {
-                viewModel.keepPhoto()
-            } label: {
-                Image(systemName: "checkmark")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(maxWidth: .infinity, maxHeight: 44)
-                    .foregroundColor(.white)
-                    .padding(.vertical)
-            }
-            .background(Color.green)
-            .cornerRadius(8)
-            
-            Spacer()
-            
-            Button {
-                viewModel.deletePhoto()
-            } label: {
-                Image(systemName: "trash")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(maxWidth: .infinity, maxHeight: 44)
-                    .foregroundColor(.white)
-                    .padding(.vertical)
-            }
-            .background(Color.red)
-            .cornerRadius(8)
-        }
-    }
-    
-    var nextImage: some View {
-        Group {
-            if let nextImageUIImage = viewModel.nextImage {
-                Image(uiImage: nextImageUIImage)
-                    .resizable()
-                    .scaledToFill()
-                    .frame(maxWidth: 100, maxHeight: 100)
-                    .clipped()
-                    .cornerRadius(8)
-            } else {
-                EmptyView()
-            }
-        }
-    }
-    
-    var subtitle: some View {
-        Text(viewModel.subtitle)
-            .font(.caption)
-    }
-    
-    private func currentAsset(_ displayingAsset: DisplayingAsset) -> some View {
-        Group {
-            switch displayingAsset.assetType {
-            case .photo:
-                if let currentImage = displayingAsset.image {
-                    Image(uiImage: currentImage)
-                        .resizable()
-                        .scaledToFit()
-                        .cornerRadius(8)
-                }
-            case .video:
-                if let currentVideoURL = displayingAsset.videoURL {
-                    VideoPlayerWrapper(videoURL: currentVideoURL)
-                }
-            }
-        }
-    }
 }
 
 #Preview {
@@ -195,7 +138,7 @@ struct PhotoDeleteView: View {
                 nextImage: .init(named: "test1"),
                 shouldShowUndoButton: false,
                 shouldNavigateToResult: false,
-                shouldDisableActionButtons: true,
+                shouldDisableActionButtons: false,
                 selectedMonth: today,
                 errorMessage: nil,
                 subtitle: "2 of 3",
