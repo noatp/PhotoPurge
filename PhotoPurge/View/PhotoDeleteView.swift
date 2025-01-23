@@ -63,7 +63,8 @@ struct PhotoDeleteView: View {
         .task {
             viewModel.fetchAssets()
         }
-        .onChange(of: viewModel.deleteResult) { _, _ in
+        .onChange(of: viewModel.shouldNavigateToResult) { _, newValue in
+            guard newValue else { return }
             navigationPathVM.navigateTo(.result)
             viewModel.shouldNavigateToResult = false
         }

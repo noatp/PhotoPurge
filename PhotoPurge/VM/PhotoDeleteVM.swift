@@ -22,7 +22,6 @@ class PhotoDeleteVM: ObservableObject {
     @Published var subtitle: String = ""
     @Published var title: String = ""
     @Published var shouldShowUndoButton: Bool = false
-    @Published var deleteResult: DeleteResult?
     @Published var assetsGroupedByMonth: [Date: [PHAsset]]?
     @Published var selectedMonth: Date?
     @Published var errorMessage: String?
@@ -68,13 +67,6 @@ class PhotoDeleteVM: ObservableObject {
     }
     
     private func addSubscription() {
-        assetService.$deleteResult.sink { [weak self] deleteResult in
-            print("Received deleteResult: \(deleteResult)")
-            guard let deleteResult else { return }
-            self?.deleteResult = deleteResult
-        }
-        .store(in: &subscriptions)
-        
         assetService.$assetsGroupedByMonth.sink { [weak self] assetsGroupedByMonth in
             if let assetsGroupedByMonth = assetsGroupedByMonth {
                 self?.assetsGroupedByMonth = assetsGroupedByMonth
