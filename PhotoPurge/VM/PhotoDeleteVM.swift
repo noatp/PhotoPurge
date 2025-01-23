@@ -105,6 +105,7 @@ class PhotoDeleteVM: ObservableObject {
         resetForNewMonth()
         self.selectedMonth = date
         self.assets = assets
+        self.title = Util.getMonthString(from: date)
         fetchNewPhotos()
     }
     
