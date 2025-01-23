@@ -25,7 +25,6 @@ class ResultVM: ObservableObject {
     
     private func addSubscription() {
         assetService.$deleteResult.sink { [weak self] deleteResult in
-            print("Received deleteResult: \(deleteResult)")
             guard let deleteResult else { return }
             self?.deleteResult = deleteResult
         }
