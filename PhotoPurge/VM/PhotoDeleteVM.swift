@@ -8,6 +8,7 @@
 import Foundation
 import Photos
 import UIKit
+import Combine
 
 enum LatestAction{
     case delete
@@ -15,44 +16,79 @@ enum LatestAction{
 }
 
 class PhotoDeleteVM: ObservableObject {
+    @Published var assetsGroupedByMonth: [Date: [PHAsset]]?
     @Published var currentDisplayingAsset: DisplayingAsset?
     @Published var nextImage: UIImage?
-    @Published var shouldNavigateToResult: Bool = false
-    @Published var subtitle: String = ""
     @Published var shouldShowUndoButton: Bool = false
+    @Published var shouldNavigateToResult: Bool = false
+    @Published var shouldDisableActionButtons: Bool = false
+    @Published var selectedMonth: Date?
+    @Published var errorMessage: String?
+    @Published var subtitle: String = ""
+    @Published var title: String = ""
     
     private var currentAssetIndex = -1
     private var assets: [PHAsset]?
     private var assetsToDelete: [PHAsset] = []
-    private let navigationPathVM: NavigationPathVM
     private var pastAction: [LatestAction] = [] {
         didSet {
             DispatchQueue.main.async { [weak self] in
-                guard let self else {
+                guard let self, let assets else {
                     return
                 }
                 shouldShowUndoButton = pastAction.count > 0
+                shouldDisableActionButtons = pastAction.count >= assets.count
             }
         }
     }
     
+    private let assetService: AssetService
+    private var subscriptions: [AnyCancellable] = []
+    
     init(
-        assets: [PHAsset]?,
-        navigationPathVM: NavigationPathVM,
-        currentDisplayingAsset: DisplayingAsset? = nil,
-        nextImage: UIImage? = nil,
-        subtitle: String = "",
-        shouldShowUndoButton: Bool = false
+        assetService: AssetService
     ) {
-#if DEBUG
+        self.assetService = assetService
+        self.addSubscription()
         print("PhotoDeleteVM init")
-#endif
-        self.assets = assets
-        self.navigationPathVM = navigationPathVM
+    }
+    
+    init(
+        assetsGroupedByMonth: [Date: [PHAsset]]?,
+        currentDisplayingAsset: DisplayingAsset?,
+        nextImage: UIImage?,
+        shouldShowUndoButton: Bool,
+        shouldNavigateToResult: Bool,
+        shouldDisableActionButtons: Bool,
+        selectedMonth: Date?,
+        errorMessage: String?,
+        subtitle: String,
+        title: String
+    ) {
+        self.assetsGroupedByMonth = assetsGroupedByMonth
         self.currentDisplayingAsset = currentDisplayingAsset
         self.nextImage = nextImage
-        self.subtitle = subtitle
         self.shouldShowUndoButton = shouldShowUndoButton
+        self.shouldNavigateToResult = shouldNavigateToResult
+        self.shouldDisableActionButtons = shouldDisableActionButtons
+        self.selectedMonth = selectedMonth
+        self.errorMessage = errorMessage
+        self.subtitle = subtitle
+        self.title = title
+
+        self.assetService = .init()
+    }
+    
+    private func addSubscription() {
+        assetService.$assetsGroupedByMonth.sink { [weak self] assetsGroupedByMonth in
+            if let assetsGroupedByMonth = assetsGroupedByMonth {
+                self?.assetsGroupedByMonth = assetsGroupedByMonth
+                guard self?.selectedMonth == nil else { return }
+                guard let oldestMonth = assetsGroupedByMonth.keys.sorted().first else { return }
+                self?.selectMonth(date: oldestMonth)
+            }
+        }
+        .store(in: &subscriptions)
     }
     
 #if DEBUG
@@ -60,24 +96,36 @@ class PhotoDeleteVM: ObservableObject {
         print("PhotoDeleteVM deinit")
     }
 #endif
-    
-    private let imageManager = PHImageManager.default()
-    
+        
     func keepPhoto() {
-        pastAction.append(.keep)
+        pushLastestAction(.keep)
         fetchNewPhotos()
     }
     
     func deletePhoto() {
-        pastAction.append(.delete)
         guard let assets else { return }
+        pushLastestAction(.delete)
         assetsToDelete.append(assets[currentAssetIndex])
         fetchNewPhotos()
     }
     
+    func fetchAssets() {
+        assetService.fetchAssets()
+    }
+    
+    func selectMonth(date: Date) {
+        guard let assetsGroupedByMonth = assetsGroupedByMonth,
+              let assets = assetsGroupedByMonth[date] else { return }
+        resetForNewMonth()
+        self.selectedMonth = date
+        self.assets = assets
+        self.title = Util.getMonthString(from: date)
+        fetchNewPhotos()
+    }
+    
     func fetchNewPhotos() {
-        if hasNextImage(afterIndex: currentAssetIndex) {
-            currentAssetIndex += 1
+        currentAssetIndex += 1
+        if isIndexValid(currentAssetIndex){
             fetchAssetAtIndex(currentAssetIndex)
             fetchNextAsset(currentIndex: currentAssetIndex)
         }
@@ -92,109 +140,15 @@ class PhotoDeleteVM: ObservableObject {
         fetchNextAsset(currentIndex: currentAssetIndex)
     }
     
-    private func fetchNextAsset(currentIndex: Int) {
-        guard let assets, hasNextImage(afterIndex: currentIndex) else {
-            DispatchQueue.main.async {
-                self.nextImage = nil
-            }
-            return
-        }
-
-        let nextAsset = assets[currentIndex + 1]
-        self.fetchPhotoForAsset(nextAsset) { [weak self] nextImage in
-            guard let self = self else { return }
-            
-            DispatchQueue.main.async {
-                self.nextImage = nextImage
-            }
-        }
+    func resetForNewMonth() {
+        currentAssetIndex = -1
+        assetsToDelete = []
+        pastAction = []
+        errorMessage = nil
     }
     
-    private func fetchAssetAtIndex(_ index: Int) {
-        setSubtitle(withIndex: index)
-        guard let assets, index < assets.count else { return }
-        
-        let asset = assets[index]
-        
-        if asset.mediaType == .image {
-            fetchPhotoForAsset(asset) { [weak self] fetchedImage in
-                guard let self = self else { return }
-                
-                DispatchQueue.main.async {
-                    self.currentDisplayingAsset = .init(assetType: .photo, image: fetchedImage)
-                }
-                
-            }
-        }
-        else if asset.mediaType == .video {
-            fetchVideoForAsset(asset) { [weak self] fetchedVideoUrl in
-                guard let self = self else { return }
-                DispatchQueue.main.async {
-                    self.currentDisplayingAsset = .init(assetType: .video, videoURL: fetchedVideoUrl)
-                }
-            }
-        }
-        
-        
-    }
-    
-    private func setSubtitle(withIndex index: Int) {
-        guard let assets else { return }
-        
-        subtitle = "\(index + 1) of \(assets.count)"
-    }
-    
-    private func fetchPhotoForAsset(_ asset: PHAsset, completion: @escaping (UIImage?) -> Void) {
-        let options = PHImageRequestOptions()
-        options.isSynchronous = false // Allow asynchronous fetching
-        options.deliveryMode = .opportunistic
-        options.isNetworkAccessAllowed = true
-        
-        imageManager.requestImage(
-            for: asset,
-            targetSize: PHImageManagerMaximumSize,
-            contentMode: .aspectFit,
-            options: options
-        ) { image, info in
-#if DEBUG
-            if let error = info?[PHImageErrorKey] as? NSError {
-                print("Error fetching image: \(error.localizedDescription)")
-            }
-#endif
-            completion(image)
-        }
-    }
-    
-    private func fetchVideoForAsset(_ asset: PHAsset, completion: @escaping (URL?) -> Void) {
-        let options = PHVideoRequestOptions()
-        options.deliveryMode = .fastFormat
-        options.isNetworkAccessAllowed = true
-        
-        imageManager.requestAVAsset(
-            forVideo: asset,
-            options: options) { avAsset, _, _ in
-                if let urlAsset = avAsset as? AVURLAsset {
-                    completion(urlAsset.url)
-                } else {
-                    completion(nil)
-                }
-            }
-    }
-    
-    private func hasNextImage(afterIndex index: Int) -> Bool {
-        guard let photoAssets = assets else { return false }
-        return index + 1 < photoAssets.count
-    }
-    
-    private func undoDeletePhoto() {
-        backtrack()
-        if assetsToDelete.count > 0 {
-            assetsToDelete.removeLast()
-        }
-    }
-    
-    private func backtrack() {
-        fetchPreviousPhotos()
+    func resetErrorMessage() {
+        errorMessage = nil
     }
     
     func undoLatestAction() {
@@ -207,42 +161,126 @@ class PhotoDeleteVM: ObservableObject {
         }
     }
     
-    func deletePhotoFromDevice() {
-        // Ensure we have a valid photo to delete
-        guard !assetsToDelete.isEmpty else {
-            navigationPathVM.navigateTo(.result(DeleteResult()))
+    private func pushLastestAction(_ latestAction: LatestAction) {
+        guard let assets, pastAction.count < assets.count else { return }
+        pastAction.append(latestAction)
+    }
+    
+    private func fetchNextAsset(currentIndex: Int) {
+        guard let assets, isNextIndexValid(currentIndex: currentIndex) else {
+            DispatchQueue.main.async {
+                self.nextImage = nil
+            }
             return
         }
+
+        let nextAsset = assets[currentIndex + 1]
+        assetService.fetchPhotoForAsset(nextAsset) { [weak self] result in
+            guard let self = self else { return }
+            
+            switch result {
+            case .success(let image):
+                DispatchQueue.main.async {
+                    self.nextImage = image
+                }
+            case .failure(let error):
+                DispatchQueue.main.async {
+                    self.errorMessage = error.localizedDescription
+                }
+            }
+            
+        }
+    }
+    
+    private func fetchAssetAtIndex(_ index: Int) {
+        guard isIndexValid(index), let assets else { return }
+        setSubtitle(withIndex: index)
         
-        PHPhotoLibrary.requestAuthorization(for: .readWrite) { [weak self] accessLevel in
-            if accessLevel == .authorized {
-                // Ensure we have valid assets to delete
-                guard let assetsToDelete = self?.assetsToDelete else { return }
+        let asset = assets[index]
+        
+        if asset.mediaType == .image {
+            assetService.fetchPhotoForAsset(asset) { [weak self] result in
+                guard let self = self else { return }
                 
-                // Perform deletion in a safe way
-                PHPhotoLibrary.shared().performChanges({
-                    PHAssetChangeRequest.deleteAssets(assetsToDelete as NSFastEnumeration)
-                }) { [weak self] success, error in
-                    if success {
-                        let deleteResult = DeleteResult(
-                            photosDeleted: assetsToDelete.count { $0.mediaType == .image },
-                            videosDeleted: assetsToDelete.count { $0.mediaType == .video }
-                        )
-                        self?.navigationPathVM.navigateTo(.result(deleteResult))
-                    } else if let error = error {
-#if DEBUG
-                        // Handle error
-                        print("Error deleting photo: \(error.localizedDescription)")
-#endif
-                        
+                switch result {
+                case .success(let image):
+                    DispatchQueue.main.async {
+                        self.currentDisplayingAsset = .init(assetType: .photo, image: image)
+                    }
+                case .failure(let error):
+                    DispatchQueue.main.async {
+                        self.errorMessage = error.localizedDescription
                     }
                 }
-            } else {
-#if DEBUG
-                print("Access denied to photo library")
-#endif
+                
+                
+            }
+        }
+        else if asset.mediaType == .video {
+            assetService.fetchVideoForAsset(asset) { [weak self] result in
+                guard let self = self else { return }
+                
+                switch result {
+                case .success(let videoURL):
+                    DispatchQueue.main.async {
+                        self.currentDisplayingAsset = .init(assetType: .video, videoURL: videoURL)
+                    }
+                case .failure(let error):
+                    DispatchQueue.main.async {
+                        self.errorMessage = error.localizedDescription
+                    }
+                }
+                
+            }
+        }
+        
+        
+    }
+    
+    private func setSubtitle(withIndex index: Int) {
+        guard let assets else { return }
+        
+        subtitle = "\(index + 1) of \(assets.count)"
+    }
+    
+    private func isNextIndexValid(currentIndex index: Int) -> Bool {
+        return isIndexValid(index + 1)
+    }
+    
+    private func isIndexValid(_ index: Int) -> Bool {
+        guard let assets else { return false }
+        return index >= 0 && index < assets.count
+    }
+    
+    private func undoDeletePhoto() {
+        backtrack()
+        if assetsToDelete.count > 0 {
+            assetsToDelete.removeLast()
+        }
+    }
+    
+    private func backtrack() {
+        fetchPreviousPhotos()
+    }
+        
+    private func deletePhotoFromDevice() {
+        assetService.deleteAssets(assetsToDelete) { result in
+            switch result {
+            case .success():
+                DispatchQueue.main.async { [weak self] in
+                    self?.shouldNavigateToResult = true
+                }
+            case .failure(let error):
+                DispatchQueue.main.async { [weak self] in
+                    self?.errorMessage = error.localizedDescription
+                }
             }
         }
     }
 }
 
+extension Dependency.ViewModels {
+    func photoDeleteVM() -> PhotoDeleteVM {
+        return PhotoDeleteVM(assetService: services.assetService)
+    }
+}
