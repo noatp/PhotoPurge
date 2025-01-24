@@ -42,7 +42,6 @@ struct MonthPickerRow: View {
                 .fill(date == selectedDate ? Color.blue : Color.secondary.opacity(0.3))
         )
         
-        .animation(.easeInOut(duration: 0.3), value: selectedDate)
     }
 }
 
