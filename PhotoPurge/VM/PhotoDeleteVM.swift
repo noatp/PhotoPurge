@@ -83,9 +83,7 @@ class PhotoDeleteVM: ObservableObject {
         assetService.$assetsGroupedByMonth.sink { [weak self] assetsGroupedByMonth in
             if let assetsGroupedByMonth = assetsGroupedByMonth {
                 self?.assetsGroupedByMonth = assetsGroupedByMonth
-                guard self?.selectedMonth == nil else { return }
-                guard let oldestMonth = assetsGroupedByMonth.keys.sorted().first else { return }
-                self?.selectMonth(date: oldestMonth)
+                self?.initMonthAsset()
             }
         }
         .store(in: &subscriptions)
@@ -114,8 +112,12 @@ class PhotoDeleteVM: ObservableObject {
     }
     
     func selectMonth(date: Date) {
-        guard let assetsGroupedByMonth = assetsGroupedByMonth,
-              let assets = assetsGroupedByMonth[date] else { return }
+        guard let assetsGroupedByMonth = assetsGroupedByMonth else { return }
+        
+        guard let assets = assetsGroupedByMonth[date] else {
+            return
+        }
+               
         resetForNewMonth()
         self.selectedMonth = date
         self.assets = assets
@@ -159,6 +161,34 @@ class PhotoDeleteVM: ObservableObject {
         case .keep:
             backtrack()
         }
+    }
+    
+    private func initMonthAsset() {
+        guard let assetsGroupedByMonth else { return }
+        
+        guard let selectedMonth else {
+            guard let oldestMonth = assetsGroupedByMonth.keys.sorted().first else { return }
+            selectMonth(date: oldestMonth)
+            return
+        }
+        
+        guard assetsGroupedByMonth[selectedMonth] != nil else {
+            guard let closestKey = closestKey(to: selectedMonth, in: assetsGroupedByMonth) else {
+                return
+            }
+            selectMonth(date: closestKey)
+            return
+        }
+        
+        selectMonth(date: selectedMonth)
+    }
+    
+    private func closestKey(to targetDate: Date, in dictionary: [Date: Any]) -> Date? {
+        guard !dictionary.isEmpty else { return nil }
+
+        let validKeys = dictionary.keys.filter { $0 > targetDate }
+
+        return validKeys.min(by: { abs($0.timeIntervalSince(targetDate)) < abs($1.timeIntervalSince(targetDate)) })
     }
     
     private func pushLastestAction(_ latestAction: LatestAction) {
