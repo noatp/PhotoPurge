@@ -271,9 +271,9 @@ class PhotoDeleteVM: ObservableObject {
                 guard let self = self else { return }
                 
                 switch result {
-                case .success(let videoURL):
+                case .success(let video):
                     DispatchQueue.main.async {
-                        self.currentDisplayingAsset = .init(assetType: .video, videoURL: videoURL)
+                        self.currentDisplayingAsset = .init(assetType: .video, video: video)
                     }
                 case .failure(let error):
                     DispatchQueue.main.async {

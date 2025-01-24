@@ -85,23 +85,24 @@ class AssetService: ObservableObject {
         }
     }
     
-    func fetchVideoForAsset(_ asset: PHAsset, completion: @escaping (Result<URL, Error>) -> Void) {
+    func fetchVideoForAsset(_ asset: PHAsset, completion: @escaping (Result<AVPlayerItem, Error>) -> Void) {
         let options = PHVideoRequestOptions()
         options.deliveryMode = .fastFormat
         options.isNetworkAccessAllowed = true
         
-        imageManager.requestAVAsset(
+        imageManager.requestPlayerItem(
             forVideo: asset,
-            options: options) { avAsset, _, _ in
-                if let urlAsset = avAsset as? AVURLAsset {
-                    // If successfully fetched, pass the URL to completion as success
-                    completion(.success(urlAsset.url))
-                } else {
-                    let errorMessage = "An issue occurred while fetching the video."
-                    let error = NSError(domain: "com.panto.photopurger.error", code: 1005, userInfo: [NSLocalizedDescriptionKey: errorMessage])
-                    completion(.failure(error))
-                }
+            options: options
+        ) { avPlayerItem, info in
+            if let fetchError = info?[PHImageErrorKey] as? NSError {
+                let errorMessage = "An issue occurred while fetching the video: \(fetchError.localizedDescription)."
+                let error = NSError(domain: "com.panto.photopurger.error", code: 1005, userInfo: [NSLocalizedDescriptionKey: errorMessage])
+                completion(.failure(error))
+            } else if let avPlayerItem = avPlayerItem {
+                print("Video asset ready")
+                completion(.success(avPlayerItem))
             }
+        }
     }
     
     
