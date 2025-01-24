@@ -12,6 +12,8 @@ import AVKit
 struct PhotoDeleteView: View {
     @ObservedObject private var viewModel: PhotoDeleteVM
     @State private var shouldShowAlert: Bool = false
+    @State private var shouldShowAndAnimateActionButtons: Bool = true
+    @State private var shouldShowAndAnimateUndoButton: Bool = false
     
     private let views: Dependency.Views
     
@@ -41,49 +43,13 @@ struct PhotoDeleteView: View {
                                 Text(viewModel.subtitle)
                                     .font(.caption)
                                     .padding()
-                                if !viewModel.shouldDisableActionButtons {
-                                    HStack {
-                                        IconActionButton(
-                                            iconName: "checkmark",
-                                            backgroundColor: .green,
-                                            foregroundColor: .white
-                                        ) {
-                                            viewModel.keepPhoto()
-                                        }
-                                        
-                                        Spacer()
-                                        
-                                        IconActionButton(
-                                            iconName: "trash",
-                                            backgroundColor: .red,
-                                            foregroundColor: .white
-                                        ) {
-                                                viewModel.deletePhoto()
-                                        }
-                                    }
+                                if shouldShowAndAnimateActionButtons {
+                                    actionButtonBar
                                 }
                                     
                             }
                             
-                            VStack {
-                                HStack (alignment: .top) {
-                                    if viewModel.shouldShowUndoButton {
-                                        UndoButton {
-                                            viewModel.undoLatestAction()
-                                        }
-                                    }
-                                    Spacer()
-                                    if let nextImageUIImage = viewModel.nextImage {
-                                        Image(uiImage: nextImageUIImage)
-                                            .resizable()
-                                            .scaledToFill()
-                                            .frame(maxWidth: 100, maxHeight: 100)
-                                            .clipped()
-                                            .cornerRadius(8)
-                                    }
-                                }
-                                Spacer()
-                            }
+                            nextImageOverlay
                         }
                         else {
                             LoadingIndicator()
@@ -95,7 +61,6 @@ struct PhotoDeleteView: View {
                 LoadingIndicator()
             }
         }
-        .padding()
         .navigationTitle(viewModel.title)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar(content: {
@@ -105,10 +70,20 @@ struct PhotoDeleteView: View {
                 }
             }
         })
-        .onChange(of: viewModel.errorMessage, { _, newValue in
+        .onChange(of: viewModel.errorMessage) { _, newValue in
             guard newValue != nil else { return }
             shouldShowAlert = true
-        })
+        }
+        .onChange(of: viewModel.shouldDisableActionButtons) { _, shouldDisable in
+            withAnimation(.easeInOut(duration: 0.2)) {
+                shouldShowAndAnimateActionButtons = !shouldDisable
+            }
+        }
+        .onChange(of: viewModel.shouldShowUndoButton) { _, shouldShowUndoButton in
+            withAnimation(.easeInOut(duration: 0.2)) {
+                shouldShowAndAnimateUndoButton = shouldShowUndoButton
+            }
+        }
         .alert(viewModel.errorMessage ?? "", isPresented: $shouldShowAlert) {
             Button("OK", role: .cancel) { viewModel.resetErrorMessage() }
         }
@@ -118,6 +93,55 @@ struct PhotoDeleteView: View {
         .task {
             viewModel.fetchAssets()
         }
+    }
+    
+    var nextImageOverlay: some View {
+        VStack {
+            HStack (alignment: .top) {
+                if shouldShowAndAnimateUndoButton {
+                    UndoButton {
+                        viewModel.undoLatestAction()
+                    }
+                    .transition(.move(edge: .leading))
+                    .padding(.leading)
+                }
+                Spacer()
+                if let nextImageUIImage = viewModel.nextImage {
+                    Image(uiImage: nextImageUIImage)
+                        .resizable()
+                        .scaledToFill()
+                        .frame(maxWidth: 100, maxHeight: 100)
+                        .clipped()
+                        .cornerRadius(8)
+                        .padding(.trailing)
+                }
+            }
+            Spacer()
+        }
+    }
+    
+    var actionButtonBar: some View {
+        HStack {
+            IconActionButton(
+                iconName: "checkmark",
+                backgroundColor: .green,
+                foregroundColor: .white
+            ) {
+                viewModel.keepPhoto()
+            }
+            
+            Spacer()
+            
+            IconActionButton(
+                iconName: "trash",
+                backgroundColor: .red,
+                foregroundColor: .white
+            ) {
+                    viewModel.deletePhoto()
+            }
+        }
+        .transition(.move(edge: .bottom))
+        .padding(.horizontal)
     }
 }
 
