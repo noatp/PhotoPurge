@@ -26,18 +26,19 @@ class PhotoDeleteVM: ObservableObject {
     @Published var errorMessage: String?
     @Published var subtitle: String = ""
     @Published var title: String = ""
+    @Published var assetsToDelete: [PHAsset] = []
     
     private var currentAssetIndex = -1
     private var assets: [PHAsset]?
-    private var assetsToDelete: [PHAsset] = []
-    private var pastAction: [LatestAction] = [] {
+    private var isDeletingPhotos: Bool = false
+    private var pastActions: [LatestAction] = [] {
         didSet {
             DispatchQueue.main.async { [weak self] in
                 guard let self, let assets else {
                     return
                 }
-                shouldShowUndoButton = pastAction.count > 0
-                shouldDisableActionButtons = pastAction.count >= assets.count
+                shouldShowUndoButton = !pastActions.isEmpty
+                shouldDisableActionButtons = pastActions.count >= assets.count
             }
         }
     }
@@ -83,9 +84,7 @@ class PhotoDeleteVM: ObservableObject {
         assetService.$assetsGroupedByMonth.sink { [weak self] assetsGroupedByMonth in
             if let assetsGroupedByMonth = assetsGroupedByMonth {
                 self?.assetsGroupedByMonth = assetsGroupedByMonth
-                guard self?.selectedMonth == nil else { return }
-                guard let oldestMonth = assetsGroupedByMonth.keys.sorted().first else { return }
-                self?.selectMonth(date: oldestMonth)
+                self?.initMonthAsset()
             }
         }
         .store(in: &subscriptions)
@@ -98,12 +97,13 @@ class PhotoDeleteVM: ObservableObject {
 #endif
         
     func keepPhoto() {
+        guard let assets, pastActions.count < assets.count else { return }
         pushLastestAction(.keep)
         fetchNewPhotos()
     }
     
     func deletePhoto() {
-        guard let assets else { return }
+        guard let assets, pastActions.count < assets.count else { return }
         pushLastestAction(.delete)
         assetsToDelete.append(assets[currentAssetIndex])
         fetchNewPhotos()
@@ -114,8 +114,12 @@ class PhotoDeleteVM: ObservableObject {
     }
     
     func selectMonth(date: Date) {
-        guard let assetsGroupedByMonth = assetsGroupedByMonth,
-              let assets = assetsGroupedByMonth[date] else { return }
+        guard let assetsGroupedByMonth = assetsGroupedByMonth else { return }
+        
+        guard let assets = assetsGroupedByMonth[date] else {
+            return
+        }
+               
         resetForNewMonth()
         self.selectedMonth = date
         self.assets = assets
@@ -129,9 +133,6 @@ class PhotoDeleteVM: ObservableObject {
             fetchAssetAtIndex(currentAssetIndex)
             fetchNextAsset(currentIndex: currentAssetIndex)
         }
-        else {
-            self.deletePhotoFromDevice()
-        }
     }
     
     func fetchPreviousPhotos() {
@@ -143,7 +144,7 @@ class PhotoDeleteVM: ObservableObject {
     func resetForNewMonth() {
         currentAssetIndex = -1
         assetsToDelete = []
-        pastAction = []
+        pastActions = []
         errorMessage = nil
     }
     
@@ -152,7 +153,8 @@ class PhotoDeleteVM: ObservableObject {
     }
     
     func undoLatestAction() {
-        let latestAction = pastAction.removeLast()
+        guard !pastActions.isEmpty else { return }
+        let latestAction = pastActions.removeLast()
         switch latestAction {
         case .delete:
             undoDeletePhoto()
@@ -161,9 +163,57 @@ class PhotoDeleteVM: ObservableObject {
         }
     }
     
+    func deletePhotoFromDevice() {
+        guard !isDeletingPhotos else { return }
+        isDeletingPhotos = true
+        assetService.deleteAssets(assetsToDelete) { result in
+            switch result {
+            case .success():
+                DispatchQueue.main.async { [weak self] in
+                    self?.shouldNavigateToResult = true
+                    self?.isDeletingPhotos = false
+                }
+            case .failure(let error):
+                DispatchQueue.main.async { [weak self] in
+                    self?.errorMessage = error.localizedDescription
+                    self?.isDeletingPhotos = false
+                }
+            }
+        }
+    }
+
+    
+    private func initMonthAsset() {
+        guard let assetsGroupedByMonth else { return }
+        
+        guard let selectedMonth else {
+            guard let oldestMonth = assetsGroupedByMonth.keys.sorted().first else { return }
+            selectMonth(date: oldestMonth)
+            return
+        }
+        
+        guard assetsGroupedByMonth[selectedMonth] != nil else {
+            guard let closestKey = closestKey(to: selectedMonth, in: assetsGroupedByMonth) else {
+                return
+            }
+            selectMonth(date: closestKey)
+            return
+        }
+        
+        selectMonth(date: selectedMonth)
+    }
+    
+    private func closestKey(to targetDate: Date, in dictionary: [Date: Any]) -> Date? {
+        guard !dictionary.isEmpty else { return nil }
+
+        let validKeys = dictionary.keys.filter { $0 > targetDate }
+
+        return validKeys.min(by: { abs($0.timeIntervalSince(targetDate)) < abs($1.timeIntervalSince(targetDate)) })
+    }
+    
     private func pushLastestAction(_ latestAction: LatestAction) {
-        guard let assets, pastAction.count < assets.count else { return }
-        pastAction.append(latestAction)
+        guard let assets, pastActions.count < assets.count else { return }
+        pastActions.append(latestAction)
     }
     
     private func fetchNextAsset(currentIndex: Int) {
@@ -261,21 +311,6 @@ class PhotoDeleteVM: ObservableObject {
     
     private func backtrack() {
         fetchPreviousPhotos()
-    }
-        
-    private func deletePhotoFromDevice() {
-        assetService.deleteAssets(assetsToDelete) { result in
-            switch result {
-            case .success():
-                DispatchQueue.main.async { [weak self] in
-                    self?.shouldNavigateToResult = true
-                }
-            case .failure(let error):
-                DispatchQueue.main.async { [weak self] in
-                    self?.errorMessage = error.localizedDescription
-                }
-            }
-        }
     }
 }
 

@@ -62,12 +62,12 @@ class AssetService: ObservableObject {
     func fetchPhotoForAsset(_ asset: PHAsset, completion: @escaping (Result<UIImage, Error>) -> Void) {
         let options = PHImageRequestOptions()
         options.isSynchronous = false // Allow asynchronous fetching
-        options.deliveryMode = .opportunistic
+        options.deliveryMode = .highQualityFormat
         options.isNetworkAccessAllowed = true
         
         imageManager.requestImage(
             for: asset,
-            targetSize: PHImageManagerMaximumSize,
+            targetSize: .init(width: 900, height: 900),
             contentMode: .aspectFit,
             options: options
         ) { image, info in
@@ -103,12 +103,12 @@ class AssetService: ObservableObject {
                 }
             }
     }
-
+    
     
     func deleteAssets(_ assetsToDelete: [PHAsset], completion: @escaping (Result<Void, Error>) -> Void) {
         // Ensure we have a valid photo to delete
         guard !assetsToDelete.isEmpty else {
-            let errorMessage = "You have not selected any photos to delete."
+            let errorMessage = "You're all set! Let's move to the next month."
             let error = NSError(domain: "com.panto.photopurger.error", code: 1006, userInfo: [NSLocalizedDescriptionKey: errorMessage])
             completion(.failure(error))
             return
@@ -119,7 +119,6 @@ class AssetService: ObservableObject {
             PHAssetChangeRequest.deleteAssets(assetsToDelete as NSFastEnumeration)
         }) { [weak self] success, deleteError in
             if success {
-                print("delete success")
                 self?.calculateTotalAssetSize(assets: assetsToDelete) { [weak self] result in
                     switch result {
                     case .success(let sizeDeleted):
@@ -135,9 +134,16 @@ class AssetService: ObservableObject {
                 }
                 
             } else if let deleteError = deleteError {
-                let errorMessage = "An issue occurred while deleting the photos: \(deleteError.localizedDescription)"
-                let error = NSError(domain: "com.panto.photopurger.error", code: 1007, userInfo: [NSLocalizedDescriptionKey: errorMessage])
-                completion(.failure(error))
+                let phError = deleteError as NSError
+                if phError.domain == "PHPhotosErrorDomain" && phError.code == 3072 {
+                    let errorMessage = "Having second thoughts? Whenever you are ready, tap the \"Confirm\" button."
+                    let error = NSError(domain: "com.panto.photopurger.error", code: 1007, userInfo: [NSLocalizedDescriptionKey: errorMessage])
+                    completion(.failure(error))
+                } else {
+                    let errorMessage = "An issue occurred while deleting the photos: \(deleteError.localizedDescription)"
+                    let error = NSError(domain: "com.panto.photopurger.error", code: 1007, userInfo: [NSLocalizedDescriptionKey: errorMessage])
+                    completion(.failure(error))
+                }
             }
         }
     }
@@ -195,5 +201,5 @@ class AssetService: ObservableObject {
             }
         }
     }
-
+    
 }
