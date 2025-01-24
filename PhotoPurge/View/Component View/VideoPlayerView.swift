@@ -9,10 +9,16 @@ import SwiftUI
 import AVKit
 
 struct VideoPlayerView: UIViewControllerRepresentable {
+    init(playerItem: AVPlayerItem) {
+        self.playerItem = playerItem
+        print("VideoPlayerView init")
+    }
+    
     let playerItem: AVPlayerItem
     
     func makeUIViewController(context: Context) -> AVPlayerViewController {
         let playerViewController = AVPlayerViewController()
+        print("makeUIViewController")
         playerViewController.player = AVPlayer(playerItem: playerItem)
         playerViewController.showsPlaybackControls = false
         playerViewController.player?.play()
@@ -25,7 +31,6 @@ struct VideoPlayerView: UIViewControllerRepresentable {
         uiViewController.player?.play()
     }
     
-    // Ensure unique identity for view updates
     func _overrideTraitCollection(context: Context) -> UITraitCollection? {
         nil
     }
