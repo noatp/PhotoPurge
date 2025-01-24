@@ -9,12 +9,59 @@ import Foundation
 import Photos
 import UIKit
 
+struct AssetServiceConstant {
+    static let imageRequestOptions: PHImageRequestOptions = {
+        let options = PHImageRequestOptions()
+        options.isSynchronous = false // Allow asynchronous fetching
+        options.deliveryMode = .highQualityFormat
+        options.version = .current
+        options.isNetworkAccessAllowed = true
+        return options
+    }()
+    static let imageRequestTargetSize: CGSize = .init(width: 900, height: 900)
+    static let imageRequestContentMode: PHImageContentMode = .aspectFit
+    
+    static let videoRequestOptions: PHVideoRequestOptions = {
+        let options = PHVideoRequestOptions()
+        options.isNetworkAccessAllowed = true
+        options.deliveryMode = .fastFormat
+        return options
+    }()
+    
+    static let prefetchWindowSize: Int = 4
+}
+
 class AssetService: ObservableObject {
     @Published var isLoading: Bool?
     @Published var assetsGroupedByMonth: [Date: [PHAsset]]?
     @Published var deleteResult: DeleteResult?
-    
     private let imageManager = PHImageManager.default()
+    
+    // for caching ---------------------------------------------------------------------------
+
+    private let cachingManager = PHCachingImageManager()
+    private var videoDownloadTasks: [PHAsset: PHImageRequestID] = [:] {
+        didSet {
+#if DEBUG
+            print("videoDownloadTasks: \(videoDownloadTasks)\n")
+#endif
+        }
+    }
+    private var prefetchedAVPlayerItems: [PHAsset: AVPlayerItem] = [:] {
+        didSet{
+#if DEBUG
+            print("prefetchedAVPlayerItems: \(prefetchedAVPlayerItems)\n")
+#endif
+        }
+    }
+    private var previousPrefetchedAssets: [PHAsset] = [] {
+        didSet {
+#if DEBUG
+            print("previousPrefetchedAssets: \(previousPrefetchedAssets)\n")
+#endif
+        }
+    }
+    /*---------------------------------------------------------------------------*/
     
     func requestAccess(completion: @escaping (Result<Void, Error>) -> Void) {
         PHPhotoLibrary.requestAuthorization(for: .readWrite) { status in
@@ -67,9 +114,9 @@ class AssetService: ObservableObject {
         
         imageManager.requestImage(
             for: asset,
-            targetSize: .init(width: 900, height: 900),
-            contentMode: .aspectFit,
-            options: options
+            targetSize: AssetServiceConstant.imageRequestTargetSize,
+            contentMode: AssetServiceConstant.imageRequestContentMode,
+            options: AssetServiceConstant.imageRequestOptions
         ) { image, info in
             if let fetchError = info?[PHImageErrorKey] as? NSError {
                 let errorMessage = "An issue occurred while fetching the image: \(fetchError.localizedDescription)"
@@ -86,25 +133,28 @@ class AssetService: ObservableObject {
     }
     
     func fetchVideoForAsset(_ asset: PHAsset, completion: @escaping (Result<AVPlayerItem, Error>) -> Void) {
-        let options = PHVideoRequestOptions()
-        options.deliveryMode = .fastFormat
-        options.isNetworkAccessAllowed = true
-        
-        imageManager.requestPlayerItem(
-            forVideo: asset,
-            options: options
-        ) { avPlayerItem, info in
-            if let fetchError = info?[PHImageErrorKey] as? NSError {
-                let errorMessage = "An issue occurred while fetching the video: \(fetchError.localizedDescription)."
-                let error = NSError(domain: "com.panto.photopurger.error", code: 1005, userInfo: [NSLocalizedDescriptionKey: errorMessage])
-                completion(.failure(error))
-            } else if let avPlayerItem = avPlayerItem {
-                print("Video asset ready")
-                completion(.success(avPlayerItem))
+        guard let prefetchedAVPlayerItem = prefetchedAVPlayerItems[asset] else {
+            let options = PHVideoRequestOptions()
+            options.deliveryMode = .fastFormat
+            options.isNetworkAccessAllowed = true
+            
+            imageManager.requestPlayerItem(
+                forVideo: asset,
+                options: options
+            ) { avPlayerItem, info in
+                if let fetchError = info?[PHImageErrorKey] as? NSError {
+                    let errorMessage = "An issue occurred while fetching the video: \(fetchError.localizedDescription)."
+                    let error = NSError(domain: "com.panto.photopurger.error", code: 1005, userInfo: [NSLocalizedDescriptionKey: errorMessage])
+                    completion(.failure(error))
+                } else if let avPlayerItem = avPlayerItem {
+                    completion(.success(avPlayerItem))
+                }
             }
+            return
         }
+        print("found prefetched yay")
+        completion(.success(prefetchedAVPlayerItem))
     }
-    
     
     func deleteAssets(_ assetsToDelete: [PHAsset], completion: @escaping (Result<Void, Error>) -> Void) {
         // Ensure we have a valid photo to delete
@@ -203,4 +253,85 @@ class AssetService: ObservableObject {
         }
     }
     
+}
+
+// MARK: Caching
+
+extension AssetService {
+    func prefetchAssets(
+        around index: Int,
+        from allAssets: [PHAsset]
+    ) {
+        // Calculate the range of indices to prefetch
+        let startIndex = max(0, index - AssetServiceConstant.prefetchWindowSize / 2)
+        let endIndex = min(allAssets.count - 1, index + AssetServiceConstant.prefetchWindowSize / 2)
+        let prefetchRange = startIndex...endIndex
+        let assetsToPrefetch = Array(allAssets[prefetchRange])
+        
+        startCachingAssets(for: assetsToPrefetch)
+        
+        let assetsToStopCaching = previousPrefetchedAssets.filter { !assetsToPrefetch.contains($0) }
+        stopCachingAssets(for: assetsToStopCaching)
+        
+        previousPrefetchedAssets = assetsToPrefetch
+    }
+    
+    func clearCache() {
+        cachingManager.stopCachingImagesForAllAssets()
+        previousPrefetchedAssets.removeAll()
+        videoDownloadTasks.removeAll()
+    }
+    
+    private func startCachingAssets(for assets: [PHAsset]) {
+        // Filter image assets for caching
+        let imageAssets = assets.filter { $0.mediaType == .image }
+        cachingManager.startCachingImages(
+            for: imageAssets,
+            targetSize: AssetServiceConstant.imageRequestTargetSize,
+            contentMode: AssetServiceConstant.imageRequestContentMode,
+            options: AssetServiceConstant.imageRequestOptions
+        )
+        
+        // Handle video assets manually
+        let videoAssets = assets.filter { $0.mediaType == .video }
+        prefetchVideos(for: videoAssets)
+    }
+    
+    private func stopCachingAssets(for assets: [PHAsset]) {
+        // Filter image assets to stop caching
+        let imageAssets = assets.filter { $0.mediaType == .image }
+        cachingManager.stopCachingImages(for: imageAssets, targetSize: .zero, contentMode: .aspectFill, options: nil)
+        
+        // Cancel video downloads
+        cancelVideoPrefetch(for: assets.filter { $0.mediaType == .video })
+    }
+    
+    private func prefetchVideos(for videoAssets: [PHAsset]) {
+        for videoAsset in videoAssets {
+            guard videoDownloadTasks[videoAsset] == nil else { continue }
+            let requestID = imageManager.requestPlayerItem(
+                forVideo: videoAsset,
+                options: AssetServiceConstant.videoRequestOptions
+            ) { [weak self] avPlayerItem, info in
+                if let fetchError = info?[PHImageErrorKey] as? NSError {
+                    let errorMessage = "An issue occurred while fetching the video: \(fetchError.localizedDescription)."
+                    let error = NSError(domain: "com.panto.photopurger.error", code: 1005, userInfo: [NSLocalizedDescriptionKey: errorMessage])
+                } else if let avPlayerItem = avPlayerItem {
+                    self?.prefetchedAVPlayerItems[videoAsset] = avPlayerItem
+                }
+            }
+            
+            videoDownloadTasks[videoAsset] = requestID
+        }
+    }
+    
+    private func cancelVideoPrefetch(for videoAssets: [PHAsset]) {
+        for videoAsset in videoAssets {
+            if let requestID = videoDownloadTasks[videoAsset] {
+                PHImageManager.default().cancelImageRequest(requestID)
+                videoDownloadTasks.removeValue(forKey: videoAsset)
+                prefetchedAVPlayerItems.removeValue(forKey: videoAsset)
+            }
+        }
+    }
 }

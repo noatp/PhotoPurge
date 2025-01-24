@@ -128,8 +128,10 @@ class PhotoDeleteVM: ObservableObject {
     }
     
     func fetchNewPhotos() {
+        guard let assets else { return }
         currentAssetIndex += 1
         if isIndexValid(currentAssetIndex){
+            assetService.prefetchAssets(around: currentAssetIndex, from: assets)
             fetchAssetAtIndex(currentAssetIndex)
             fetchNextAsset(currentIndex: currentAssetIndex)
         }
