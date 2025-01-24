@@ -108,7 +108,7 @@ class AssetService: ObservableObject {
     func deleteAssets(_ assetsToDelete: [PHAsset], completion: @escaping (Result<Void, Error>) -> Void) {
         // Ensure we have a valid photo to delete
         guard !assetsToDelete.isEmpty else {
-            let errorMessage = "You have not selected any photos to delete."
+            let errorMessage = "You're all set! Let's move to the next month."
             let error = NSError(domain: "com.panto.photopurger.error", code: 1006, userInfo: [NSLocalizedDescriptionKey: errorMessage])
             completion(.failure(error))
             return

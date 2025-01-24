@@ -42,7 +42,8 @@ struct PhotoDeleteView: View {
                                 Spacer(minLength: 0)
                                 Text(viewModel.subtitle)
                                     .font(.caption)
-                                    .padding()
+                                    .padding(.top)
+                                Divider()
                                 if shouldShowAndAnimateActionButtons {
                                     actionButtonBar
                                 }
