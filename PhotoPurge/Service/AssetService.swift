@@ -62,12 +62,12 @@ class AssetService: ObservableObject {
     func fetchPhotoForAsset(_ asset: PHAsset, completion: @escaping (Result<UIImage, Error>) -> Void) {
         let options = PHImageRequestOptions()
         options.isSynchronous = false // Allow asynchronous fetching
-        options.deliveryMode = .opportunistic
+        options.deliveryMode = .highQualityFormat
         options.isNetworkAccessAllowed = true
         
         imageManager.requestImage(
             for: asset,
-            targetSize: PHImageManagerMaximumSize,
+            targetSize: .init(width: 900, height: 900),
             contentMode: .aspectFit,
             options: options
         ) { image, info in
