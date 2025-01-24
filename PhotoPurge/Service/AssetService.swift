@@ -103,7 +103,7 @@ class AssetService: ObservableObject {
                 }
             }
     }
-
+    
     
     func deleteAssets(_ assetsToDelete: [PHAsset], completion: @escaping (Result<Void, Error>) -> Void) {
         // Ensure we have a valid photo to delete
@@ -134,9 +134,16 @@ class AssetService: ObservableObject {
                 }
                 
             } else if let deleteError = deleteError {
-                let errorMessage = "An issue occurred while deleting the photos: \(deleteError.localizedDescription)"
-                let error = NSError(domain: "com.panto.photopurger.error", code: 1007, userInfo: [NSLocalizedDescriptionKey: errorMessage])
-                completion(.failure(error))
+                let phError = deleteError as NSError
+                if phError.domain == "PHPhotosErrorDomain" && phError.code == 3072 {
+                    let errorMessage = "Having second thoughts? Whenever you are ready, tap the \"Confirm\" button."
+                    let error = NSError(domain: "com.panto.photopurger.error", code: 1007, userInfo: [NSLocalizedDescriptionKey: errorMessage])
+                    completion(.failure(error))
+                } else {
+                    let errorMessage = "An issue occurred while deleting the photos: \(deleteError.localizedDescription)"
+                    let error = NSError(domain: "com.panto.photopurger.error", code: 1007, userInfo: [NSLocalizedDescriptionKey: errorMessage])
+                    completion(.failure(error))
+                }
             }
         }
     }
@@ -194,5 +201,5 @@ class AssetService: ObservableObject {
             }
         }
     }
-
+    
 }

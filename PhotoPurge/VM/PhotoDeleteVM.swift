@@ -26,10 +26,10 @@ class PhotoDeleteVM: ObservableObject {
     @Published var errorMessage: String?
     @Published var subtitle: String = ""
     @Published var title: String = ""
+    @Published var assetsToDelete: [PHAsset] = []
     
     private var currentAssetIndex = -1
     private var assets: [PHAsset]?
-    private var assetsToDelete: [PHAsset] = []
     private var isDeletingPhotos: Bool = false
     private var pastActions: [LatestAction] = [] {
         didSet {
@@ -133,9 +133,6 @@ class PhotoDeleteVM: ObservableObject {
             fetchAssetAtIndex(currentAssetIndex)
             fetchNextAsset(currentIndex: currentAssetIndex)
         }
-        else {
-            self.deletePhotoFromDevice()
-        }
     }
     
     func fetchPreviousPhotos() {
@@ -165,6 +162,26 @@ class PhotoDeleteVM: ObservableObject {
             backtrack()
         }
     }
+    
+    func deletePhotoFromDevice() {
+        guard !isDeletingPhotos else { return }
+        isDeletingPhotos = true
+        assetService.deleteAssets(assetsToDelete) { result in
+            switch result {
+            case .success():
+                DispatchQueue.main.async { [weak self] in
+                    self?.shouldNavigateToResult = true
+                    self?.isDeletingPhotos = false
+                }
+            case .failure(let error):
+                DispatchQueue.main.async { [weak self] in
+                    self?.errorMessage = error.localizedDescription
+                    self?.isDeletingPhotos = false
+                }
+            }
+        }
+    }
+
     
     private func initMonthAsset() {
         guard let assetsGroupedByMonth else { return }
@@ -294,25 +311,6 @@ class PhotoDeleteVM: ObservableObject {
     
     private func backtrack() {
         fetchPreviousPhotos()
-    }
-        
-    private func deletePhotoFromDevice() {
-        guard !isDeletingPhotos else { return }
-        isDeletingPhotos = true
-        assetService.deleteAssets(assetsToDelete) { result in
-            switch result {
-            case .success():
-                DispatchQueue.main.async { [weak self] in
-                    self?.shouldNavigateToResult = true
-                    self?.isDeletingPhotos = false
-                }
-            case .failure(let error):
-                DispatchQueue.main.async { [weak self] in
-                    self?.errorMessage = error.localizedDescription
-                    self?.isDeletingPhotos = false
-                }
-            }
-        }
     }
 }
 

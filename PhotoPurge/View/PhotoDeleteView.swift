@@ -46,7 +46,10 @@ struct PhotoDeleteView: View {
                                 if shouldShowAndAnimateActionButtons {
                                     actionButtonBar
                                 }
-                                    
+                                else {
+                                    confirmDeleteButtonBar
+                                }
+                                
                             }
                             
                             nextImageOverlay
@@ -137,8 +140,31 @@ struct PhotoDeleteView: View {
                 backgroundColor: .red,
                 foregroundColor: .white
             ) {
-                    viewModel.deletePhoto()
+                viewModel.deletePhoto()
             }
+        }
+        .transition(.move(edge: .bottom))
+        .padding(.horizontal)
+    }
+    
+    var confirmDeleteButtonBar: some View {
+        VStack {
+            Text("You selected \(viewModel.assetsToDelete.count) items to delete.")
+                .font(.title3)
+                .padding()
+
+            Button {
+                viewModel.deletePhotoFromDevice()
+            } label: {
+                Text("Confirm")
+                    .font(.title3)
+                    .frame(maxWidth: .infinity, maxHeight: 44)
+                    .foregroundColor(.white)
+                    .padding()
+            }
+            .background(Color.accentColor)
+            .cornerRadius(8)
+            .padding()
         }
         .transition(.move(edge: .bottom))
         .padding(.horizontal)
