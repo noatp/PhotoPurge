@@ -25,7 +25,7 @@ struct CurrentAssetDisplay: View {
             }
         case .video:
             if let currentVideo = displayingAsset.video {
-                VideoPlayerWrapper(video: currentVideo)
+                VideoPlayerView(playerItem: currentVideo)
             }
         }
     }

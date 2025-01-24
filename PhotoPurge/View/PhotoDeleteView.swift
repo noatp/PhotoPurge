@@ -108,6 +108,7 @@ struct PhotoDeleteView: View {
                     }
                     .transition(.move(edge: .leading))
                     .padding(.leading)
+                    .zIndex(1)  // Ensure this is above the video player
                 }
                 Spacer()
                 if let nextImageUIImage = viewModel.nextImage {
