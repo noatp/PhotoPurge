@@ -10,12 +10,14 @@ import Photos
 import AVKit
 
 struct PhotoDeleteView: View {
-    @EnvironmentObject var navigationPathVM: NavigationPathVM
     @ObservedObject private var viewModel: PhotoDeleteVM
     @State private var shouldShowAlert: Bool = false
     
-    init(photoDeleteVM: PhotoDeleteVM) {
-        self.viewModel = photoDeleteVM
+    private let views: Dependency.Views
+    
+    init(viewModel: PhotoDeleteVM, views: Dependency.Views) {
+        self.viewModel = viewModel
+        self.views = views
     }
     
     var body: some View {
@@ -103,17 +105,15 @@ struct PhotoDeleteView: View {
                 }
             }
         })
-        .onChange(of: viewModel.shouldNavigateToResult) { _, newValue in
-            guard newValue else { return }
-            navigationPathVM.navigateTo(.result)
-            viewModel.shouldNavigateToResult = false
-        }
         .onChange(of: viewModel.errorMessage, { _, newValue in
             guard newValue != nil else { return }
             shouldShowAlert = true
         })
         .alert(viewModel.errorMessage ?? "", isPresented: $shouldShowAlert) {
             Button("OK", role: .cancel) { viewModel.resetErrorMessage() }
+        }
+        .navigationDestination(isPresented: $viewModel.shouldNavigateToResult) {
+            views.resultView()
         }
         .task {
             viewModel.fetchAssets()
@@ -132,7 +132,7 @@ struct PhotoDeleteView: View {
     
     NavigationStack {
         PhotoDeleteView(
-            photoDeleteVM: .init(
+            viewModel: .init(
                 assetsGroupedByMonth: assetsGroupedByMonth,
                 currentDisplayingAsset: .init(assetType: .photo, image: .init(named: "test2")),
                 nextImage: .init(named: "test1"),
@@ -143,7 +143,8 @@ struct PhotoDeleteView: View {
                 errorMessage: nil,
                 subtitle: "2 of 3",
                 title: Util.getMonthString(from: today)
-            )
+            ),
+            views: Dependency.preview.views()
         )
     }
 }
@@ -151,7 +152,8 @@ struct PhotoDeleteView: View {
 extension Dependency.Views {
     func photoDeleteView() -> PhotoDeleteView {
         return PhotoDeleteView(
-            photoDeleteVM: viewModels.photoDeleteVM()
+            viewModel: viewModels.photoDeleteVM(),
+            views: self
         )
     }
 }

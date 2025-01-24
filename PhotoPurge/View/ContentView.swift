@@ -9,7 +9,6 @@ import SwiftUI
 
 struct ContentView: View {
     @State private var isFirstLaunch: Bool = UserDefaults.standard.bool(forKey: "hasLaunchedBefore") == false
-    @StateObject private var navigationPathVM: NavigationPathVM = .init()
     private let views: Dependency.Views
     
     init(views: Dependency.Views) {
@@ -20,16 +19,9 @@ struct ContentView: View {
         if isFirstLaunch {
             WelcomeScreen(isFirstLaunch: $isFirstLaunch)
         } else {
-            NavigationStack(path: $navigationPathVM.path) {
+            NavigationStack {
                 views.photoDeleteView()
-                    .navigationDestination(for: NavigationDestination.self ){ destination in
-                        switch destination {
-                        case .result:
-                            views.resultView()
-                        }
-                    }
             }
-            .environmentObject(navigationPathVM)
         }
     }
 }
