@@ -119,7 +119,6 @@ class AssetService: ObservableObject {
             PHAssetChangeRequest.deleteAssets(assetsToDelete as NSFastEnumeration)
         }) { [weak self] success, deleteError in
             if success {
-                print("delete success")
                 self?.calculateTotalAssetSize(assets: assetsToDelete) { [weak self] result in
                     switch result {
                     case .success(let sizeDeleted):
