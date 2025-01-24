@@ -28,8 +28,10 @@ class PhotoDeleteVM: ObservableObject {
     @Published var title: String = ""
     
     private var currentAssetIndex = -1
+    private var currentAssetIndex = -1 
     private var assets: [PHAsset]?
     private var assetsToDelete: [PHAsset] = []
+    private var isDeletingPhotos: Bool = false
     private var pastAction: [LatestAction] = [] {
         didSet {
             DispatchQueue.main.async { [weak self] in
@@ -294,15 +296,19 @@ class PhotoDeleteVM: ObservableObject {
     }
         
     private func deletePhotoFromDevice() {
+        guard !isDeletingPhotos else { return }
+        isDeletingPhotos = true
         assetService.deleteAssets(assetsToDelete) { result in
             switch result {
             case .success():
                 DispatchQueue.main.async { [weak self] in
                     self?.shouldNavigateToResult = true
+                    self?.isDeletingPhotos = false
                 }
             case .failure(let error):
                 DispatchQueue.main.async { [weak self] in
                     self?.errorMessage = error.localizedDescription
+                    self?.isDeletingPhotos = false
                 }
             }
         }
