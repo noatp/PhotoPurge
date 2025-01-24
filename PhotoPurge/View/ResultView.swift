@@ -8,8 +8,8 @@
 import SwiftUI
 
 struct ResultView: View {
-    @EnvironmentObject var navigationPathVM: NavigationPathVM
     @ObservedObject private var viewModel: ResultVM
+    @Environment(\.dismiss) private var dismiss
     
     init(resultVM: ResultVM) {
         self.viewModel = resultVM
@@ -31,7 +31,7 @@ struct ResultView: View {
                 
                 // Button to pop the views back to MonthPickerView
                 Button(action: {
-                    navigationPathVM.popToRoot()
+                    dismiss()
                 }) {
                     Text("Return")
                         .font(.title2)
