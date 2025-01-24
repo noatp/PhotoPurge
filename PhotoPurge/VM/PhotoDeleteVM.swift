@@ -27,13 +27,21 @@ class PhotoDeleteVM: ObservableObject {
     @Published var subtitle: String = ""
     @Published var title: String = ""
     
-    private var currentAssetIndex = -1
-    private var currentAssetIndex = -1 
+    private var currentAssetIndex = -1 {
+        didSet {
+            print("currentAssetIndex \(currentAssetIndex)")
+        }
+    }
     private var assets: [PHAsset]?
-    private var assetsToDelete: [PHAsset] = []
+    private var assetsToDelete: [PHAsset] = [] {
+        didSet {
+            print("assetsToDelete \(assetsToDelete)")
+        }
+    }
     private var isDeletingPhotos: Bool = false
     private var pastAction: [LatestAction] = [] {
         didSet {
+            print("pastAction \(pastAction)")
             DispatchQueue.main.async { [weak self] in
                 guard let self, let assets else {
                     return
@@ -98,12 +106,15 @@ class PhotoDeleteVM: ObservableObject {
 #endif
         
     func keepPhoto() {
+        print("Keep")
+        guard let assets, pastAction.count < assets.count else { return }
         pushLastestAction(.keep)
         fetchNewPhotos()
     }
     
     func deletePhoto() {
-        guard let assets else { return }
+        print("DELETE")
+        guard let assets, pastAction.count < assets.count else { return }
         pushLastestAction(.delete)
         assetsToDelete.append(assets[currentAssetIndex])
         fetchNewPhotos()
