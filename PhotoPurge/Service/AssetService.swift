@@ -15,6 +15,7 @@ struct AssetServiceConstant {
         options.isSynchronous = false // Allow asynchronous fetching
         options.deliveryMode = .highQualityFormat
         options.version = .current
+        options.resizeMode = .fast 
         options.isNetworkAccessAllowed = true
         return options
     }()
@@ -25,10 +26,11 @@ struct AssetServiceConstant {
         let options = PHVideoRequestOptions()
         options.isNetworkAccessAllowed = true
         options.deliveryMode = .fastFormat
+        options.version = .current
         return options
     }()
     
-    static let prefetchWindowSize: Int = 4
+    static let prefetchWindowSize: Int = 10
 }
 
 class AssetService: ObservableObject {
@@ -38,26 +40,26 @@ class AssetService: ObservableObject {
     private let imageManager = PHImageManager.default()
     
     // for caching ---------------------------------------------------------------------------
-
+    
     private let cachingManager = PHCachingImageManager()
     private var videoDownloadTasks: [PHAsset: PHImageRequestID] = [:] {
         didSet {
 #if DEBUG
-            print("videoDownloadTasks: \(videoDownloadTasks)\n")
+            //            print("videoDownloadTasks: \(videoDownloadTasks)\n")
 #endif
         }
     }
     private var prefetchedAVPlayerItems: [PHAsset: AVPlayerItem] = [:] {
         didSet{
 #if DEBUG
-            print("prefetchedAVPlayerItems: \(prefetchedAVPlayerItems)\n")
+            //            print("prefetchedAVPlayerItems: \(prefetchedAVPlayerItems)\n")
 #endif
         }
     }
     private var previousPrefetchedAssets: [PHAsset] = [] {
         didSet {
 #if DEBUG
-            print("previousPrefetchedAssets: \(previousPrefetchedAssets)\n")
+            //            print("previousPrefetchedAssets: \(previousPrefetchedAssets)\n")
 #endif
         }
     }
@@ -107,11 +109,6 @@ class AssetService: ObservableObject {
     }
     
     func fetchPhotoForAsset(_ asset: PHAsset, completion: @escaping (Result<UIImage, Error>) -> Void) {
-        let options = PHImageRequestOptions()
-        options.isSynchronous = false // Allow asynchronous fetching
-        options.deliveryMode = .highQualityFormat
-        options.isNetworkAccessAllowed = true
-        
         imageManager.requestImage(
             for: asset,
             targetSize: AssetServiceConstant.imageRequestTargetSize,
@@ -134,13 +131,9 @@ class AssetService: ObservableObject {
     
     func fetchVideoForAsset(_ asset: PHAsset, completion: @escaping (Result<AVPlayerItem, Error>) -> Void) {
         guard let prefetchedAVPlayerItem = prefetchedAVPlayerItems[asset] else {
-            let options = PHVideoRequestOptions()
-            options.deliveryMode = .fastFormat
-            options.isNetworkAccessAllowed = true
-            
             imageManager.requestPlayerItem(
                 forVideo: asset,
-                options: options
+                options: AssetServiceConstant.videoRequestOptions
             ) { avPlayerItem, info in
                 if let fetchError = info?[PHImageErrorKey] as? NSError {
                     let errorMessage = "An issue occurred while fetching the video: \(fetchError.localizedDescription)."
@@ -152,7 +145,6 @@ class AssetService: ObservableObject {
             }
             return
         }
-        print("found prefetched yay")
         completion(.success(prefetchedAVPlayerItem))
     }
     
@@ -263,8 +255,8 @@ extension AssetService {
         from allAssets: [PHAsset]
     ) {
         // Calculate the range of indices to prefetch
-        let startIndex = max(0, index - AssetServiceConstant.prefetchWindowSize / 2)
-        let endIndex = min(allAssets.count - 1, index + AssetServiceConstant.prefetchWindowSize / 2)
+        let startIndex = max(0, index - AssetServiceConstant.prefetchWindowSize * 2 / 10)
+        let endIndex = min(allAssets.count - 1, index + AssetServiceConstant.prefetchWindowSize * 8 / 10)
         let prefetchRange = startIndex...endIndex
         let assetsToPrefetch = Array(allAssets[prefetchRange])
         
@@ -316,12 +308,27 @@ extension AssetService {
                 if let fetchError = info?[PHImageErrorKey] as? NSError {
                     let errorMessage = "An issue occurred while fetching the video: \(fetchError.localizedDescription)."
                     let error = NSError(domain: "com.panto.photopurger.error", code: 1005, userInfo: [NSLocalizedDescriptionKey: errorMessage])
+#if DEBUG
+                    print(error.localizedDescription)
+#endif
                 } else if let avPlayerItem = avPlayerItem {
+                    self?.preparePlayerItem(avPlayerItem)
                     self?.prefetchedAVPlayerItems[videoAsset] = avPlayerItem
                 }
             }
             
             videoDownloadTasks[videoAsset] = requestID
+        }
+    }
+    
+    private func preparePlayerItem(_ playerItem: AVPlayerItem) {
+        Task {
+            let asset = await playerItem.asset
+            do {
+                let _ = try await asset.load(.tracks, .duration, .preferredTransform)
+            } catch let error {
+                print(error.localizedDescription)
+            }
         }
     }
     
