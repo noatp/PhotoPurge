@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import AVFoundation
 
 enum AssetType {
     case photo
@@ -14,12 +15,12 @@ enum AssetType {
 
 struct DisplayingAsset {
     let assetType: AssetType
-    let videoURL: URL?
+    let video: AVPlayerItem?
     let image: UIImage?
     
-    init(assetType: AssetType, videoURL: URL? = nil, image: UIImage? = nil) {
+    init(assetType: AssetType, video: AVPlayerItem? = nil, image: UIImage? = nil) {
         self.assetType = assetType
-        self.videoURL = videoURL
+        self.video = video
         self.image = image
     }
 }

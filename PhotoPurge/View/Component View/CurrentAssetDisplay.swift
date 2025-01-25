@@ -24,8 +24,9 @@ struct CurrentAssetDisplay: View {
                     .cornerRadius(8)
             }
         case .video:
-            if let currentVideoURL = displayingAsset.videoURL {
-                VideoPlayerWrapper(videoURL: currentVideoURL)
+            if let currentVideo = displayingAsset.video {
+                CustomVideoPlayer(avPlayerItem: currentVideo)
+                    
             }
         }
     }
