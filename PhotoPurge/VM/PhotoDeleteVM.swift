@@ -22,6 +22,7 @@ class PhotoDeleteVM: ObservableObject {
     @Published var shouldShowUndoButton: Bool = false
     @Published var shouldNavigateToResult: Bool = false
     @Published var shouldDisableActionButtons: Bool = false
+    @Published var shouldSelectNextMonth: Bool = false
     @Published var selectedMonth: Date?
     @Published var errorMessage: String?
     @Published var subtitle: String = ""
@@ -145,9 +146,15 @@ class PhotoDeleteVM: ObservableObject {
     
     func resetForNewMonth() {
         currentAssetIndex = -1
+        currentDisplayingAsset = nil
+        nextImage = nil
+        shouldNavigateToResult = false
+        shouldSelectNextMonth = false
+        subtitle = ""
         assetsToDelete = []
         pastActions = []
         errorMessage = nil
+        
     }
     
     func resetErrorMessage() {
@@ -177,11 +184,26 @@ class PhotoDeleteVM: ObservableObject {
                 }
             case .failure(let error):
                 DispatchQueue.main.async { [weak self] in
+                    switch error {
+                    case .deleteEmptyList(_):
+                        self?.shouldSelectNextMonth = true
+                    default:
+                        break
+                    }
                     self?.errorMessage = error.localizedDescription
                     self?.isDeletingPhotos = false
                 }
             }
         }
+    }
+    
+    func selectNextMonth() {
+        guard let assetsGroupedByMonth, let selectedMonth else { return }
+
+        guard let nextMonth = nextKey(after: selectedMonth, in: assetsGroupedByMonth) else {
+            return
+        }
+        selectMonth(date: nextMonth)
     }
 
     
@@ -195,22 +217,17 @@ class PhotoDeleteVM: ObservableObject {
         }
         
         guard assetsGroupedByMonth[selectedMonth] != nil else {
-            guard let closestKey = closestKey(to: selectedMonth, in: assetsGroupedByMonth) else {
-                return
-            }
-            selectMonth(date: closestKey)
+            selectNextMonth()
             return
         }
         
         selectMonth(date: selectedMonth)
     }
     
-    private func closestKey(to targetDate: Date, in dictionary: [Date: Any]) -> Date? {
-        guard !dictionary.isEmpty else { return nil }
-
-        let validKeys = dictionary.keys.filter { $0 > targetDate }
-
-        return validKeys.min(by: { abs($0.timeIntervalSince(targetDate)) < abs($1.timeIntervalSince(targetDate)) })
+    private func nextKey(after targetDate: Date, in dictionary: [Date: Any]) -> Date? {
+        return dictionary.keys
+            .filter { $0 > targetDate }
+            .min() // The minimal date that's still > targetDate
     }
     
     private func pushLastestAction(_ latestAction: LatestAction) {

@@ -89,7 +89,13 @@ struct PhotoDeleteView: View {
             }
         }
         .alert(viewModel.errorMessage ?? "", isPresented: $shouldShowAlert) {
-            Button("OK", role: .cancel) { viewModel.resetErrorMessage() }
+            Button("OK", role: .cancel) {
+                if viewModel.shouldSelectNextMonth {
+                    viewModel.selectNextMonth()
+                    viewModel.shouldSelectNextMonth = false
+                }
+                viewModel.resetErrorMessage()
+            }
         }
         .navigationDestination(isPresented: $viewModel.shouldNavigateToResult) {
             views.resultView()
