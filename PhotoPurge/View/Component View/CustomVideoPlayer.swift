@@ -32,7 +32,7 @@ struct CustomVideoPlayer: View {
 }
 
 #Preview {
-    CustomVideoPlayer(avPlayerItem: .init(url: .init(string: "https://www.youtube.com/watch?v=-JIjsJVWFxo")!))
+    CustomVideoPlayer(avPlayerItem: .init(url: .init(string: "")!))
 }
 
 

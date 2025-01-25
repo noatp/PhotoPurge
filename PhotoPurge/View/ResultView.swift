@@ -10,7 +10,9 @@ import SwiftUI
 struct ResultView: View {
     @ObservedObject private var viewModel: ResultVM
     @Environment(\.dismiss) private var dismiss
-    
+    @StateObject private var adViewModel: InterstitialViewModel = .init()
+    @State private var didShowAd: Bool = false
+        
     init(resultVM: ResultVM) {
         self.viewModel = resultVM
     }
@@ -30,18 +32,29 @@ struct ResultView: View {
                 Spacer()
                 
                 // Button to pop the views back to MonthPickerView
-                Button(action: {
-                    dismiss()
-                }) {
-                    Text("Return")
-                        .font(.title2)
-                        .foregroundColor(.blue)
-                        .padding()
+                if adViewModel.shouldShowReturnButton {
+                    Button(action: {
+                        dismiss()
+                    }) {
+                        Text("Return")
+                            .font(.title2)
+                            .foregroundColor(.blue)
+                            .padding()
+                    }
                 }
             }
         }
         .navigationTitle("Result")
         .navigationBarBackButtonHidden(true) // Hide the default back button
+        .task {
+            if !didShowAd {
+                Task {
+                    await adViewModel.loadAd()
+                    adViewModel.showAd()
+                    didShowAd = true
+                }
+            }
+        }
     }
 }
 
