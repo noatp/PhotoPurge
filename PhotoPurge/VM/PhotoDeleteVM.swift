@@ -139,9 +139,13 @@ class PhotoDeleteVM: ObservableObject {
     }
     
     func fetchPreviousPhotos() {
+        guard let assets else { return }
         currentAssetIndex -= 1
-        fetchAssetAtIndex(currentAssetIndex)
-        fetchNextAsset(currentIndex: currentAssetIndex)
+        if isIndexValid(currentAssetIndex){
+            assetService.prefetchAssets(around: currentAssetIndex, from: assets)
+            fetchAssetAtIndex(currentAssetIndex)
+            fetchNextAsset(currentIndex: currentAssetIndex)
+        }
     }
     
     func resetForNewMonth() {
@@ -154,7 +158,7 @@ class PhotoDeleteVM: ObservableObject {
         assetsToDelete = []
         pastActions = []
         errorMessage = nil
-        
+        assetService.clearCache()
     }
     
     func resetErrorMessage() {

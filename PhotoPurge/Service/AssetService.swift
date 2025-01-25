@@ -314,6 +314,7 @@ extension AssetService {
     func clearCache() {
         cachingManager.stopCachingImagesForAllAssets()
         previousPrefetchedAssets.removeAll()
+        prefetchedAVPlayerItems.removeAll()
         videoDownloadTasks.removeAll()
     }
     
@@ -392,9 +393,9 @@ extension AssetService {
         for videoAsset in videoAssets {
             if let requestID = videoDownloadTasks[videoAsset] {
                 PHImageManager.default().cancelImageRequest(requestID)
-                videoDownloadTasks.removeValue(forKey: videoAsset)
-                prefetchedAVPlayerItems.removeValue(forKey: videoAsset)
             }
+            videoDownloadTasks.removeValue(forKey: videoAsset)
+            prefetchedAVPlayerItems.removeValue(forKey: videoAsset)
         }
     }
 }
