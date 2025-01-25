@@ -7,14 +7,25 @@ struct MonthPickerRow: View {
     let selectMonth: (Date) -> Void
     
     var body: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            LazyHStack(spacing: 20) {
-                ForEach(assetsGroupedByMonth.keys.sorted(), id: \.self) { date in
-                    monthPickerButton(for: date)
-                        .onTapGesture {
-                            selectedDate = date
-                            selectMonth(date)
-                        }
+        ScrollViewReader { proxy in
+            ScrollView(.horizontal, showsIndicators: false) {
+                LazyHStack(spacing: 20) {
+                    ForEach(assetsGroupedByMonth.keys.sorted(), id: \.self) { date in
+                        monthPickerButton(for: date)
+                            .id(date)
+                            .onTapGesture {
+                                if selectedDate != date {
+                                    selectedDate = date
+                                    selectMonth(date)
+                                }
+                            }
+                    }
+                }
+            }
+            .onChange(of: selectedDate) { _, newValue in
+                guard let date = newValue else { return }
+                withAnimation (.easeInOut(duration: 0.2)) {
+                    proxy.scrollTo(date, anchor: .center)
                 }
             }
         }
@@ -26,11 +37,12 @@ struct MonthPickerRow: View {
             Text(Util.getYear(from: date))
                 .font(.headline)
                 .foregroundColor(date == selectedDate ? .white : .primary)
+            
             Text(Util.getShortMonth(from: date))
                 .font(.title2)
                 .padding(.bottom, 5)
                 .foregroundColor(date == selectedDate ? .white : .primary)
-                .padding(.bottom, 4)
+            
             Text("\(assetsGroupedByMonth[date]?.count ?? 0) items")
                 .font(.caption)
                 .foregroundColor(date == selectedDate ? .white : .secondary)
@@ -41,7 +53,6 @@ struct MonthPickerRow: View {
             RoundedRectangle(cornerRadius: 12)
                 .fill(date == selectedDate ? Color.blue : Color.secondary.opacity(0.3))
         )
-        
     }
 }
 

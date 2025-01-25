@@ -12,8 +12,6 @@ import AVKit
 struct PhotoDeleteView: View {
     @ObservedObject private var viewModel: PhotoDeleteVM
     @State private var shouldShowAlert: Bool = false
-    @State private var shouldShowAndAnimateActionButtons: Bool = true
-    @State private var shouldShowAndAnimateUndoButton: Bool = false
     
     private let views: Dependency.Views
     
@@ -34,31 +32,7 @@ struct PhotoDeleteView: View {
                     }
                     Divider()
                         .padding()
-                    ZStack {
-                        if let currentDisplayingAsset = viewModel.currentDisplayingAsset {
-                            VStack {
-                                Spacer()
-                                CurrentAssetDisplay(displayingAsset: currentDisplayingAsset)
-                                Spacer(minLength: 0)
-                                Text(viewModel.subtitle)
-                                    .font(.caption)
-                                    .padding(.top)
-                                Divider()
-                                if shouldShowAndAnimateActionButtons {
-                                    actionButtonBar
-                                }
-                                else {
-                                    confirmDeleteButtonBar
-                                }
-                                
-                            }
-                            
-                            nextImageOverlay
-                        }
-                        else {
-                            LoadingIndicator()
-                        }
-                    }
+                    photoPanel
                 }
             }
             else {
@@ -78,18 +52,17 @@ struct PhotoDeleteView: View {
             guard newValue != nil else { return }
             shouldShowAlert = true
         }
-        .onChange(of: viewModel.shouldDisableActionButtons) { _, shouldDisable in
-            withAnimation(.easeInOut(duration: 0.2)) {
-                shouldShowAndAnimateActionButtons = !shouldDisable
-            }
-        }
-        .onChange(of: viewModel.shouldShowUndoButton) { _, shouldShowUndoButton in
-            withAnimation(.easeInOut(duration: 0.2)) {
-                shouldShowAndAnimateUndoButton = shouldShowUndoButton
-            }
-        }
+        .animation(.easeInOut, value: viewModel.shouldDisableActionButtons)
+        .animation(.easeInOut, value: viewModel.shouldShowUndoButton)
+
         .alert(viewModel.errorMessage ?? "", isPresented: $shouldShowAlert) {
-            Button("OK", role: .cancel) { viewModel.resetErrorMessage() }
+            Button("OK", role: .cancel) {
+                if viewModel.shouldSelectNextMonth {
+                    viewModel.selectNextMonth()
+                    viewModel.shouldSelectNextMonth = false
+                }
+                viewModel.resetErrorMessage()
+            }
         }
         .navigationDestination(isPresented: $viewModel.shouldNavigateToResult) {
             views.resultView()
@@ -102,7 +75,7 @@ struct PhotoDeleteView: View {
     var nextImageOverlay: some View {
         VStack {
             HStack (alignment: .top) {
-                if shouldShowAndAnimateUndoButton {
+                if viewModel.shouldShowUndoButton {
                     UndoButton {
                         viewModel.undoLatestAction()
                     }
@@ -145,7 +118,6 @@ struct PhotoDeleteView: View {
                 viewModel.deletePhoto()
             }
         }
-        .transition(.move(edge: .bottom))
         .padding(.horizontal)
     }
     
@@ -170,6 +142,34 @@ struct PhotoDeleteView: View {
         }
         .transition(.move(edge: .bottom))
         .padding(.horizontal)
+    }
+    
+    var photoPanel: some View {
+        Group {
+            if let currentDisplayingAsset = viewModel.currentDisplayingAsset {
+                ZStack {
+                    VStack {
+                        Spacer()
+                        CurrentAssetDisplay(displayingAsset: currentDisplayingAsset)
+                        Spacer(minLength: 0)
+                        Text(viewModel.subtitle)
+                            .font(.caption)
+                            .padding(.top)
+                        Divider()
+                        if viewModel.shouldDisableActionButtons {
+                            confirmDeleteButtonBar
+                        }
+                        else {
+                            actionButtonBar
+                        }
+                    }
+                    nextImageOverlay
+                }
+            }
+            else {
+                LoadingIndicator()
+            }
+        }
     }
 }
 
