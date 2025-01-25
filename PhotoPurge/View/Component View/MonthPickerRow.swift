@@ -14,8 +14,10 @@ struct MonthPickerRow: View {
                         monthPickerButton(for: date)
                             .id(date)
                             .onTapGesture {
-                                selectedDate = date
-                                selectMonth(date)
+                                if selectedDate != date {
+                                    selectedDate = date
+                                    selectMonth(date)
+                                }
                             }
                     }
                 }

@@ -13,7 +13,7 @@ enum AssetType {
     case video
 }
 
-struct DisplayingAsset {
+struct DisplayingAsset: Equatable {
     let assetType: AssetType
     let video: AVPlayerItem?
     let image: UIImage?
@@ -23,4 +23,6 @@ struct DisplayingAsset {
         self.video = video
         self.image = image
     }
+    
+    static let empty = DisplayingAsset(assetType: .photo)
 }
