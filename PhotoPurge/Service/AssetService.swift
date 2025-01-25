@@ -15,7 +15,7 @@ struct AssetServiceConstant {
         options.isSynchronous = false // Allow asynchronous fetching
         options.deliveryMode = .highQualityFormat
         options.version = .current
-        options.resizeMode = .fast 
+        options.resizeMode = .fast
         options.isNetworkAccessAllowed = true
         return options
     }()
@@ -130,23 +130,70 @@ class AssetService: ObservableObject {
     }
     
     func fetchVideoForAsset(_ asset: PHAsset, completion: @escaping (Result<AVPlayerItem, Error>) -> Void) {
-        guard let prefetchedAVPlayerItem = prefetchedAVPlayerItems[asset] else {
-            imageManager.requestPlayerItem(
-                forVideo: asset,
-                options: AssetServiceConstant.videoRequestOptions
-            ) { avPlayerItem, info in
-                if let fetchError = info?[PHImageErrorKey] as? NSError {
-                    let errorMessage = "An issue occurred while fetching the video: \(fetchError.localizedDescription)."
-                    let error = NSError(domain: "com.panto.photopurger.error", code: 1005, userInfo: [NSLocalizedDescriptionKey: errorMessage])
-                    completion(.failure(error))
-                } else if let avPlayerItem = avPlayerItem {
-                    completion(.success(avPlayerItem))
-                }
-            }
+        // If we already have a prefetched AVPlayerItem in our cache/dictionary, return it immediately
+        if let prefetchedAVPlayerItem = prefetchedAVPlayerItems[asset] {
+            print("found prefetched video for asset: \(asset)")
+            completion(.success(prefetchedAVPlayerItem))
             return
         }
-        completion(.success(prefetchedAVPlayerItem))
+        
+        // Otherwise, request the AVAsset instead of an AVPlayerItem
+        requestAVAsset(asset, completion: completion)
     }
+    
+    private func requestAVAsset(_ asset: PHAsset, completion: @escaping (Result<AVPlayerItem, Error>) -> Void) {
+        imageManager.requestAVAsset(forVideo: asset, options: AssetServiceConstant.videoRequestOptions) { avAsset, audioMix, info in
+            if let fetchError = info?[PHImageErrorKey] as? NSError {
+                let errorMessage = "An issue occurred while fetching the video: \(fetchError.localizedDescription)."
+                let error = NSError(
+                    domain: "com.panto.photopurger.error",
+                    code: 1005,
+                    userInfo: [NSLocalizedDescriptionKey: errorMessage]
+                )
+                completion(.failure(error))
+            } else if let avAsset = avAsset {
+                Task {
+                    do {
+                        let _ = try await avAsset.load(.preferredTransform, .tracks, .duration, .metadata)
+                        let playerItem = await AVPlayerItem(asset: avAsset)
+                        
+                        completion(.success(playerItem))
+
+                    } catch {
+                        print("Failed to load transform: \(error)")
+                    }
+                }
+            } else {
+                // If neither avAsset nor an error is returned, handle the "unknown" scenario
+                let error = NSError(
+                    domain: "com.panto.photopurger.error",
+                    code: 1006,
+                    userInfo: [NSLocalizedDescriptionKey: "Unable to retrieve AVAsset for the requested PHAsset."]
+                )
+                completion(.failure(error))
+            }
+        }
+    }
+    
+    //    func fetchVideoForAsset(_ asset: PHAsset, completion: @escaping (Result<AVPlayerItem, Error>) -> Void) {
+    //        guard let prefetchedAVPlayerItem = prefetchedAVPlayerItems[asset] else {
+    //            imageManager.requestPlayerItem(
+    //                forVideo: asset,
+    //                options: AssetServiceConstant.videoRequestOptions
+    //            ) { avPlayerItem, info in
+    //                if let fetchError = info?[PHImageErrorKey] as? NSError {
+    //                    let errorMessage = "An issue occurred while fetching the video: \(fetchError.localizedDescription)."
+    //                    let error = NSError(domain: "com.panto.photopurger.error", code: 1005, userInfo: [NSLocalizedDescriptionKey: errorMessage])
+    //                    completion(.failure(error))
+    //                } else if let avPlayerItem = avPlayerItem {
+    //                    completion(.success(avPlayerItem))
+    //                }
+    //            }
+    //            return
+    //        }
+    //        print("found prefetched video for asset: \(asset)")
+    //        completion(.success(prefetchedAVPlayerItem))
+    //    }
     
     func deleteAssets(_ assetsToDelete: [PHAsset], completion: @escaping (Result<Void, Error>) -> Void) {
         // Ensure we have a valid photo to delete
@@ -301,21 +348,53 @@ extension AssetService {
     private func prefetchVideos(for videoAssets: [PHAsset]) {
         for videoAsset in videoAssets {
             guard videoDownloadTasks[videoAsset] == nil else { continue }
-            let requestID = imageManager.requestPlayerItem(
-                forVideo: videoAsset,
-                options: AssetServiceConstant.videoRequestOptions
-            ) { [weak self] avPlayerItem, info in
+            let requestID = imageManager.requestAVAsset(forVideo: videoAsset, options: AssetServiceConstant.videoRequestOptions)
+            { [weak self] avAsset, audioMix, info in
                 if let fetchError = info?[PHImageErrorKey] as? NSError {
                     let errorMessage = "An issue occurred while fetching the video: \(fetchError.localizedDescription)."
-                    let error = NSError(domain: "com.panto.photopurger.error", code: 1005, userInfo: [NSLocalizedDescriptionKey: errorMessage])
-#if DEBUG
+                    let error = NSError(
+                        domain: "com.panto.photopurger.error",
+                        code: 1005,
+                        userInfo: [NSLocalizedDescriptionKey: errorMessage]
+                    )
                     print(error.localizedDescription)
-#endif
-                } else if let avPlayerItem = avPlayerItem {
-                    self?.preparePlayerItem(avPlayerItem)
-                    self?.prefetchedAVPlayerItems[videoAsset] = avPlayerItem
+                } else if let avAsset = avAsset {
+                    Task {
+                        do {
+                            let _ = try await avAsset.load(.preferredTransform, .tracks, .duration, .metadata)
+                            let playerItem = await AVPlayerItem(asset: avAsset)
+                            
+                            self?.prefetchedAVPlayerItems[videoAsset] = playerItem
+
+                        } catch {
+                            print("Failed to load transform: \(error)")
+                        }
+                    }
+                } else {
+                    // If neither avAsset nor an error is returned, handle the "unknown" scenario
+                    let error = NSError(
+                        domain: "com.panto.photopurger.error",
+                        code: 1006,
+                        userInfo: [NSLocalizedDescriptionKey: "Unable to retrieve AVAsset for the requested PHAsset."]
+                    )
+                    print(error.localizedDescription)
                 }
             }
+//            let requestID = imageManager.requestPlayerItem(
+//                forVideo: videoAsset,
+//                options: AssetServiceConstant.videoRequestOptions
+//            ) { [weak self] avPlayerItem, info in
+//                if let fetchError = info?[PHImageErrorKey] as? NSError {
+//                    let errorMessage = "An issue occurred while fetching the video: \(fetchError.localizedDescription)."
+//                    let error = NSError(domain: "com.panto.photopurger.error", code: 1005, userInfo: [NSLocalizedDescriptionKey: errorMessage])
+//#if DEBUG
+//                    print(error.localizedDescription)
+//#endif
+//                } else if let avPlayerItem = avPlayerItem {
+//                    self?.preparePlayerItem(avPlayerItem)
+//                    self?.prefetchedAVPlayerItems[videoAsset] = avPlayerItem
+//                }
+//            }
             
             videoDownloadTasks[videoAsset] = requestID
         }
