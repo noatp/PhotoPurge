@@ -108,6 +108,7 @@ class PhotoDeleteVM: ObservableObject {
 #endif
         
     func keepPhoto() {
+        guard actionButtonState == .show else { return }
         guard let assets, pastActions.count < assets.count else { return }
         if !isShowingAds {
             pushLastestAction(.keep)
@@ -116,6 +117,7 @@ class PhotoDeleteVM: ObservableObject {
     }
     
     func deletePhoto() {
+        guard actionButtonState == .show else { return }
         guard let assets, pastActions.count < assets.count else { return }
         if !isShowingAds {
             pushLastestAction(.delete)
@@ -271,7 +273,7 @@ class PhotoDeleteVM: ObservableObject {
             }
             
             guard let restoreButtonsAfterAdsWorkItem = self.restoreButtonsAfterAdsWorkItem else { return }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2, execute: restoreButtonsAfterAdsWorkItem)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1, execute: restoreButtonsAfterAdsWorkItem)
         }
         
     }
