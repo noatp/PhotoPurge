@@ -8,24 +8,60 @@
 import GoogleMobileAds
 import SwiftUI
 
+struct NativeAdConstant {
+    static let adDuration: Double = 1.5 //1.5 seconds
+    static let photosLimitPerAd: Int = 10 // 10 photos will show an ad
+}
 
 struct NativeContentView: View {
     @StateObject private var nativeViewModel = NativeAdViewModel()
+    @State private var progress: Double = 0.0
+    @State private var timer: Timer?
+    
     let navigationTitle: String
     
     var body: some View {
         GeometryReader { proxy in
-            NativeAdView(nativeViewModel: nativeViewModel)
-                .frame(width: proxy.size.width, height: proxy.size.height)
+            VStack(spacing: 0) {
+                NativeAdView(nativeViewModel: nativeViewModel)
+                    .frame(width: proxy.size.width, height: proxy.size.height)
+                ProgressView(value: progress, total: 1.0)
+                    .progressViewStyle(.linear)
+            }
+            
         }
         .onAppear {
             refreshAd()
+            startIncrementing()
+        }
+        .onDisappear {
+            timer?.invalidate()
         }
         .navigationTitle(navigationTitle)
     }
     
     private func refreshAd() {
         nativeViewModel.refreshAd()
+    }
+    
+    private func startIncrementing() {
+        // Invalidate any existing timer
+        timer?.invalidate()
+        
+        progress = 0.0  // Reset to start
+        let steps = 100
+        let totalDuration = NativeAdConstant.adDuration
+        let stepInterval = totalDuration / Double(steps)
+        
+        var currentStep = 0
+        timer = Timer.scheduledTimer(withTimeInterval: stepInterval, repeats: true) { t in
+            currentStep += 1
+            progress = Double(currentStep) / Double(steps)
+            
+            if currentStep >= steps {
+                t.invalidate() // Done
+            }
+        }
     }
 }
 

@@ -37,7 +37,6 @@ class PhotoDeleteVM: ObservableObject {
     
     private var currentAssetIndex = -1
     private var photosWithoutAds = 0
-    private let photosPerAds = 10
     private var assets: [PHAsset]?
     private var isDeletingPhotos: Bool = false
     private var isShowingAds: Bool = false
@@ -150,7 +149,7 @@ class PhotoDeleteVM: ObservableObject {
             isShowingAds = false
         }
         photosWithoutAds += 1
-        guard photosWithoutAds < photosPerAds else {
+        guard photosWithoutAds < NativeAdConstant.photosLimitPerAd else {
             photosWithoutAds = 0
             showAds()
             return
@@ -273,7 +272,7 @@ class PhotoDeleteVM: ObservableObject {
             }
             
             guard let restoreButtonsAfterAdsWorkItem = self.restoreButtonsAfterAdsWorkItem else { return }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1, execute: restoreButtonsAfterAdsWorkItem)
+            DispatchQueue.main.asyncAfter(deadline: .now() + NativeAdConstant.adDuration, execute: restoreButtonsAfterAdsWorkItem)
         }
         
     }
