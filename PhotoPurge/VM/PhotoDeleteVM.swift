@@ -30,8 +30,11 @@ class PhotoDeleteVM: ObservableObject {
     @Published var assetsToDelete: [PHAsset] = []
     
     private var currentAssetIndex = -1
+    private var photosWithoutAds = 0
+    private let photosPerAds = 10
     private var assets: [PHAsset]?
     private var isDeletingPhotos: Bool = false
+    private var isShowingAds: Bool = false
     private var pastActions: [LatestAction] = [] {
         didSet {
             DispatchQueue.main.async { [weak self] in
@@ -99,14 +102,18 @@ class PhotoDeleteVM: ObservableObject {
         
     func keepPhoto() {
         guard let assets, pastActions.count < assets.count else { return }
-        pushLastestAction(.keep)
+        if !isShowingAds {
+            pushLastestAction(.keep)
+        }
         fetchNewPhotos()
     }
     
     func deletePhoto() {
         guard let assets, pastActions.count < assets.count else { return }
-        pushLastestAction(.delete)
-        assetsToDelete.append(assets[currentAssetIndex])
+        if !isShowingAds {
+            pushLastestAction(.delete)
+            assetsToDelete.append(assets[currentAssetIndex])
+        }
         fetchNewPhotos()
     }
     
@@ -130,6 +137,15 @@ class PhotoDeleteVM: ObservableObject {
     
     func fetchNewPhotos() {
         guard let assets else { return }
+        if isShowingAds {
+            isShowingAds = false
+        }
+        photosWithoutAds += 1
+        guard photosWithoutAds < photosPerAds else {
+            photosWithoutAds = 0
+            showAds()
+            return
+        }
         currentAssetIndex += 1
         if isIndexValid(currentAssetIndex){
             assetService.prefetchAssets(around: currentAssetIndex, from: assets)
@@ -159,6 +175,7 @@ class PhotoDeleteVM: ObservableObject {
         pastActions = []
         errorMessage = nil
         assetService.clearCache()
+        isShowingAds = false
     }
     
     func resetErrorMessage() {
@@ -210,6 +227,16 @@ class PhotoDeleteVM: ObservableObject {
         selectMonth(date: nextMonth)
     }
 
+    private func showAds() {
+        guard !isShowingAds else { return }
+        isShowingAds = true
+        DispatchQueue.main.async { [weak self] in
+            self?.currentDisplayingAsset = .ads
+            self?.nextImage = nil
+            self?.subtitle = ""
+        }
+        
+    }
     
     private func initMonthAsset() {
         guard let assetsGroupedByMonth else { return }
