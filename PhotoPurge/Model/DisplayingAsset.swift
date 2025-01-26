@@ -11,6 +11,7 @@ import AVFoundation
 enum AssetType {
     case photo
     case video
+    case ads
 }
 
 struct DisplayingAsset: Equatable {
@@ -25,4 +26,5 @@ struct DisplayingAsset: Equatable {
     }
     
     static let empty = DisplayingAsset(assetType: .photo)
+    static let ads = DisplayingAsset(assetType: .ads)
 }

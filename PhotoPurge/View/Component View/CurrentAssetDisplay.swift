@@ -27,6 +27,8 @@ struct CurrentAssetDisplay: View {
             if let currentVideo = displayingAsset.video {
                 CustomVideoPlayer(avPlayerItem: currentVideo)
             }
+        case .ads:
+            NativeContentView(navigationTitle: "Ads")
         }
     }
 }

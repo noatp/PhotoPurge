@@ -15,13 +15,19 @@ enum LatestAction{
     case keep
 }
 
+enum ActionButtonState {
+    case show
+    case confirmDelete
+    case hideForAds
+}
+
 class PhotoDeleteVM: ObservableObject {
     @Published var assetsGroupedByMonth: [Date: [PHAsset]]?
     @Published var currentDisplayingAsset: DisplayingAsset?
     @Published var nextImage: UIImage?
     @Published var shouldShowUndoButton: Bool = false
     @Published var shouldNavigateToResult: Bool = false
-    @Published var shouldDisableActionButtons: Bool = false
+    @Published var actionButtonState: ActionButtonState = .show
     @Published var shouldSelectNextMonth: Bool = false
     @Published var selectedMonth: Date?
     @Published var errorMessage: String?
@@ -30,8 +36,11 @@ class PhotoDeleteVM: ObservableObject {
     @Published var assetsToDelete: [PHAsset] = []
     
     private var currentAssetIndex = -1
+    private var photosWithoutAds = 0
     private var assets: [PHAsset]?
     private var isDeletingPhotos: Bool = false
+    private var isShowingAds: Bool = false
+    private var restoreButtonsAfterAdsWorkItem: DispatchWorkItem?
     private var pastActions: [LatestAction] = [] {
         didSet {
             DispatchQueue.main.async { [weak self] in
@@ -39,7 +48,7 @@ class PhotoDeleteVM: ObservableObject {
                     return
                 }
                 shouldShowUndoButton = !pastActions.isEmpty
-                shouldDisableActionButtons = pastActions.count >= assets.count
+                actionButtonState = pastActions.count >= assets.count ? .confirmDelete : .show
             }
         }
     }
@@ -61,7 +70,7 @@ class PhotoDeleteVM: ObservableObject {
         nextImage: UIImage?,
         shouldShowUndoButton: Bool,
         shouldNavigateToResult: Bool,
-        shouldDisableActionButtons: Bool,
+        actionButtonState: ActionButtonState,
         selectedMonth: Date?,
         errorMessage: String?,
         subtitle: String,
@@ -72,7 +81,7 @@ class PhotoDeleteVM: ObservableObject {
         self.nextImage = nextImage
         self.shouldShowUndoButton = shouldShowUndoButton
         self.shouldNavigateToResult = shouldNavigateToResult
-        self.shouldDisableActionButtons = shouldDisableActionButtons
+        self.actionButtonState = actionButtonState
         self.selectedMonth = selectedMonth
         self.errorMessage = errorMessage
         self.subtitle = subtitle
@@ -98,15 +107,21 @@ class PhotoDeleteVM: ObservableObject {
 #endif
         
     func keepPhoto() {
+        guard actionButtonState == .show else { return }
         guard let assets, pastActions.count < assets.count else { return }
-        pushLastestAction(.keep)
+        if !isShowingAds {
+            pushLastestAction(.keep)
+        }
         fetchNewPhotos()
     }
     
     func deletePhoto() {
+        guard actionButtonState == .show else { return }
         guard let assets, pastActions.count < assets.count else { return }
-        pushLastestAction(.delete)
-        assetsToDelete.append(assets[currentAssetIndex])
+        if !isShowingAds {
+            pushLastestAction(.delete)
+            assetsToDelete.append(assets[currentAssetIndex])
+        }
         fetchNewPhotos()
     }
     
@@ -130,6 +145,15 @@ class PhotoDeleteVM: ObservableObject {
     
     func fetchNewPhotos() {
         guard let assets else { return }
+        if isShowingAds {
+            isShowingAds = false
+        }
+        photosWithoutAds += 1
+        guard photosWithoutAds < NativeAdConstant.photosLimitPerAd else {
+            photosWithoutAds = 0
+            showAds()
+            return
+        }
         currentAssetIndex += 1
         if isIndexValid(currentAssetIndex){
             assetService.prefetchAssets(around: currentAssetIndex, from: assets)
@@ -149,6 +173,7 @@ class PhotoDeleteVM: ObservableObject {
     }
     
     func resetForNewMonth() {
+        restoreButtonsAfterAdsWorkItem?.cancel()
         currentAssetIndex = -1
         currentDisplayingAsset = nil
         nextImage = nil
@@ -159,6 +184,7 @@ class PhotoDeleteVM: ObservableObject {
         pastActions = []
         errorMessage = nil
         assetService.clearCache()
+        isShowingAds = false
     }
     
     func resetErrorMessage() {
@@ -209,7 +235,6 @@ class PhotoDeleteVM: ObservableObject {
         }
         selectMonth(date: nextMonth)
     }
-
     
     private func initMonthAsset() {
         guard let assetsGroupedByMonth else { return }
@@ -226,6 +251,30 @@ class PhotoDeleteVM: ObservableObject {
         }
         
         selectMonth(date: selectedMonth)
+    }
+    
+    private func showAds() {
+        guard !isShowingAds else { return }
+        isShowingAds = true
+        DispatchQueue.main.async { [weak self] in
+            guard let self else { return }
+            let tempStateForActionButton = self.actionButtonState
+            let tempStateForUndoButton = self.shouldShowUndoButton
+            self.actionButtonState = .hideForAds
+            self.nextImage = nil
+            self.subtitle = ""
+            self.currentDisplayingAsset = .ads
+            self.shouldShowUndoButton = false
+            self.restoreButtonsAfterAdsWorkItem = DispatchWorkItem { [weak self] in
+                guard let self = self else { return }
+                self.actionButtonState = tempStateForActionButton
+                self.shouldShowUndoButton = tempStateForUndoButton
+            }
+            
+            guard let restoreButtonsAfterAdsWorkItem = self.restoreButtonsAfterAdsWorkItem else { return }
+            DispatchQueue.main.asyncAfter(deadline: .now() + NativeAdConstant.adDuration, execute: restoreButtonsAfterAdsWorkItem)
+        }
+        
     }
     
     private func nextKey(after targetDate: Date, in dictionary: [Date: Any]) -> Date? {

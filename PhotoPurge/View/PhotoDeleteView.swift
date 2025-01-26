@@ -31,7 +31,6 @@ struct PhotoDeleteView: View {
                         viewModel.selectMonth(date: month)
                     }
                     Divider()
-                        .padding()
                     photoPanel
                 }
             }
@@ -52,7 +51,7 @@ struct PhotoDeleteView: View {
             guard newValue != nil else { return }
             shouldShowAlert = true
         }
-        .animation(.easeInOut, value: viewModel.shouldDisableActionButtons)
+        .animation(.easeInOut, value: viewModel.actionButtonState)
         .animation(.easeInOut, value: viewModel.shouldShowUndoButton)
 
         .alert(viewModel.errorMessage ?? "", isPresented: $shouldShowAlert) {
@@ -99,46 +98,50 @@ struct PhotoDeleteView: View {
     }
     
     var actionButtonBar: some View {
-        HStack {
-            IconActionButton(
-                iconName: "checkmark",
-                backgroundColor: .green,
-                foregroundColor: .white
-            ) {
-                viewModel.keepPhoto()
-            }
-            
-            Spacer()
-            
-            IconActionButton(
-                iconName: "trash",
-                backgroundColor: .red,
-                foregroundColor: .white
-            ) {
-                viewModel.deletePhoto()
-            }
-        }
-        .padding(.horizontal)
-    }
-    
-    var confirmDeleteButtonBar: some View {
-        VStack {
-            Text("You selected \(viewModel.assetsToDelete.count) items to delete.")
-                .font(.title3)
-                .padding()
+        Group {
+            switch viewModel.actionButtonState {
+            case .show:
+                HStack {
+                    IconActionButton(
+                        iconName: "checkmark",
+                        backgroundColor: .green,
+                        foregroundColor: .white
+                    ) {
+                        viewModel.keepPhoto()
+                    }
+                    
+                    Spacer()
+                    
+                    IconActionButton(
+                        iconName: "trash",
+                        backgroundColor: .red,
+                        foregroundColor: .white
+                    ) {
+                        viewModel.deletePhoto()
+                    }
+                }
+            case .confirmDelete:
+                VStack {
+                    Text("You selected \(viewModel.assetsToDelete.count) items to delete.")
+                        .font(.title3)
+                        .padding()
 
-            Button {
-                viewModel.deletePhotoFromDevice()
-            } label: {
-                Text("Confirm")
-                    .font(.title3)
-                    .frame(maxWidth: .infinity, maxHeight: 44)
-                    .foregroundColor(.white)
+                    Button {
+                        viewModel.deletePhotoFromDevice()
+                    } label: {
+                        Text("Confirm")
+                            .font(.title3)
+                            .frame(maxWidth: .infinity, maxHeight: 44)
+                            .foregroundColor(.white)
+                            .padding()
+                    }
+                    .background(Color.accentColor)
+                    .cornerRadius(8)
                     .padding()
+                }
+            case .hideForAds:
+                EmptyView()
             }
-            .background(Color.accentColor)
-            .cornerRadius(8)
-            .padding()
         }
         .transition(.move(edge: .bottom))
         .padding(.horizontal)
@@ -156,12 +159,7 @@ struct PhotoDeleteView: View {
                             .font(.caption)
                             .padding(.top)
                         Divider()
-                        if viewModel.shouldDisableActionButtons {
-                            confirmDeleteButtonBar
-                        }
-                        else {
-                            actionButtonBar
-                        }
+                        actionButtonBar
                     }
                     nextImageOverlay
                 }
@@ -190,7 +188,7 @@ struct PhotoDeleteView: View {
                 nextImage: .init(named: "test1"),
                 shouldShowUndoButton: false,
                 shouldNavigateToResult: false,
-                shouldDisableActionButtons: false,
+                actionButtonState: .show,
                 selectedMonth: today,
                 errorMessage: nil,
                 subtitle: "2 of 3",
