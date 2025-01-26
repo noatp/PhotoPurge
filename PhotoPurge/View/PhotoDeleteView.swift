@@ -31,7 +31,6 @@ struct PhotoDeleteView: View {
                         viewModel.selectMonth(date: month)
                     }
                     Divider()
-                        .padding()
                     photoPanel
                 }
             }
