@@ -10,10 +10,11 @@ import SwiftUI
 struct ResultView: View {
     @ObservedObject private var viewModel: ResultVM
     @Environment(\.dismiss) private var dismiss
-    @StateObject private var adViewModel: InterstitialViewModel = .init()
     @State private var didShowAd: Bool = false
         
-    init(resultVM: ResultVM) {
+    init(
+        resultVM: ResultVM
+    ) {
         self.viewModel = resultVM
     }
     
@@ -31,8 +32,7 @@ struct ResultView: View {
                     .font(.title2)
                 Spacer()
                 
-                // Button to pop the views back to MonthPickerView
-                if adViewModel.shouldShowReturnButton {
+                if viewModel.shouldShowReturnButton {
                     Button(action: {
                         dismiss()
                     }) {
@@ -49,8 +49,7 @@ struct ResultView: View {
         .task {
             if !didShowAd {
                 Task {
-                    await adViewModel.loadAd()
-                    adViewModel.showAd()
+                    viewModel.showAd()
                     didShowAd = true
                 }
             }

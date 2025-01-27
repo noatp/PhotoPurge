@@ -12,8 +12,13 @@ struct LoadingIndicator: View {
         VStack {
             Spacer()
             ProgressView()
+            Text("Loading")
             Spacer()
         }
     }
+}
+
+#Preview {
+    LoadingIndicator()
 }
 
