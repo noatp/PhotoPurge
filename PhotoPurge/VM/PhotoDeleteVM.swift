@@ -208,14 +208,12 @@ class PhotoDeleteVM: ObservableObject {
         guard !isDeletingPhotos else { return }
         isDeletingPhotos = true
         assetService.deleteAssets(assetsToDelete) { result in
-            switch result {
-            case .success():
-                DispatchQueue.main.async { [weak self] in
+            DispatchQueue.main.async { [weak self] in
+                switch result {
+                case .success():
                     self?.shouldNavigateToResult = true
                     self?.isDeletingPhotos = false
-                }
-            case .failure(let error):
-                DispatchQueue.main.async { [weak self] in
+                case .failure(let error):
                     switch error {
                     case .deleteEmptyList(_):
                         self?.shouldSelectNextMonth = true
@@ -226,6 +224,7 @@ class PhotoDeleteVM: ObservableObject {
                     self?.isDeletingPhotos = false
                 }
             }
+            
         }
     }
     
@@ -299,20 +298,17 @@ class PhotoDeleteVM: ObservableObject {
         }
         
         let nextAsset = assets[currentIndex + 1]
-        assetService.fetchPhotoForAsset(nextAsset) { [weak self] result in
-            guard let self = self else { return }
-            
-            switch result {
-            case .success(let image):
-                DispatchQueue.main.async {
+        assetService.fetchPhotoForAsset(nextAsset) { result in
+            DispatchQueue.main.async { [weak self] in
+                guard let self = self else { return }
+
+                switch result {
+                case .success(let image):
                     self.nextImage = image
-                }
-            case .failure(let error):
-                DispatchQueue.main.async {
+                case .failure(let error):
                     self.errorMessage = error.localizedDescription
                 }
             }
-            
         }
     }
     
@@ -323,38 +319,29 @@ class PhotoDeleteVM: ObservableObject {
         let asset = assets[index]
         
         if asset.mediaType == .image {
-            assetService.fetchPhotoForAsset(asset) { [weak self] result in
-                guard let self = self else { return }
-                
-                switch result {
-                case .success(let image):
-                    DispatchQueue.main.async {
+            assetService.fetchPhotoForAsset(asset) { result in
+                DispatchQueue.main.async { [weak self] in
+                    guard let self = self else { return }
+                    switch result {
+                    case .success(let image):
                         self.currentDisplayingAsset = .init(assetType: .photo, image: image)
-                    }
-                case .failure(let error):
-                    DispatchQueue.main.async {
+                    case .failure(let error):
                         self.errorMessage = error.localizedDescription
                     }
                 }
-                
-                
             }
         }
         else if asset.mediaType == .video {
-            assetService.fetchVideoForAsset(asset) { [weak self] result in
-                guard let self = self else { return }
-                
-                switch result {
-                case .success(let video):
-                    DispatchQueue.main.async {
+            assetService.fetchVideoForAsset(asset) { result in
+                DispatchQueue.main.async { [weak self] in
+                    guard let self = self else { return }
+                    switch result {
+                    case .success(let video):
                         self.currentDisplayingAsset = .init(assetType: .video, video: video)
-                    }
-                case .failure(let error):
-                    DispatchQueue.main.async {
+                    case .failure(let error):
                         self.errorMessage = error.localizedDescription
                     }
                 }
-                
             }
         }
         

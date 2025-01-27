@@ -11,13 +11,13 @@ import GoogleMobileAds
 class ResultVM: NSObject, ObservableObject {
     @Published var deleteResult: DeleteResult?
     @Published var shouldShowReturnButton: Bool = false
-
+    
     private let assetService: AssetService
     private let adService: AdService
     private var subscriptions: [AnyCancellable] = []
     
     private var interstitialAd: GADInterstitialAd?
-
+    
     init(
         assetService: AssetService,
         adService: AdService
@@ -51,17 +51,21 @@ class ResultVM: NSObject, ObservableObject {
     }
     
     private func addSubscription() {
-        assetService.$deleteResult.sink { [weak self] deleteResult in
-            guard let deleteResult else { return }
-            self?.deleteResult = deleteResult
-        }
-        .store(in: &subscriptions)
+        assetService.$deleteResult
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] deleteResult in
+                guard let deleteResult else { return }
+                self?.deleteResult = deleteResult
+            }
+            .store(in: &subscriptions)
         
-        adService.$interstitialAd.sink { [weak self] interstitialAd in
-            guard let self = self else { return }
-            self.interstitialAd = interstitialAd
-        }
-        .store(in: &subscriptions)
+        adService.$interstitialAd
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] interstitialAd in
+                guard let self = self else { return }
+                self.interstitialAd = interstitialAd
+            }
+            .store(in: &subscriptions)
     }
 }
 
