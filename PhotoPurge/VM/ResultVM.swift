@@ -10,7 +10,6 @@ import GoogleMobileAds
 
 class ResultVM: NSObject, ObservableObject {
     @Published var deleteResult: DeleteResult?
-    @Published var shouldShowReturnButton: Bool = false
     
     private let assetService: AssetService
     private let adService: AdService
@@ -29,20 +28,15 @@ class ResultVM: NSObject, ObservableObject {
     }
     
     init(
-        deleteResult: DeleteResult,
-        shouldShowReturnButton: Bool = false
+        deleteResult: DeleteResult
     ) {
         self.deleteResult = deleteResult
-        self.shouldShowReturnButton = shouldShowReturnButton
         self.assetService = .init()
         self.adService = .init()
     }
     
     func showAd() {
         guard let interstitialAd = interstitialAd else {
-            DispatchQueue.main.async { [weak self] in
-                self?.shouldShowReturnButton = true
-            }
             adService.loadInterstitialAd()
             return
         }
@@ -91,9 +85,6 @@ extension ResultVM: GADFullScreenContentDelegate {
     
     func adWillDismissFullScreenContent(_ ad: GADFullScreenPresentingAd) {
         print("\(#function) called")
-        DispatchQueue.main.async { [weak self] in
-            self?.shouldShowReturnButton = true
-        }
     }
     
     func adDidDismissFullScreenContent(_ ad: GADFullScreenPresentingAd) {

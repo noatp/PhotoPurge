@@ -12,6 +12,7 @@ import AVKit
 struct PhotoDeleteView: View {
     @ObservedObject private var viewModel: PhotoDeleteVM
     @State private var shouldShowAlert: Bool = false
+    @State private var shouldShowAndAnimatePhotoPanale: Bool = false
     
     private let views: Dependency.Views
     
@@ -51,9 +52,9 @@ struct PhotoDeleteView: View {
             guard newValue != nil else { return }
             shouldShowAlert = true
         }
-        .animation(.easeInOut, value: viewModel.actionButtonState)
-        .animation(.easeInOut, value: viewModel.shouldShowUndoButton)
-
+        .onChange(of: viewModel.currentDisplayingAsset, { oldValue, newValue in
+            shouldShowAndAnimatePhotoPanale = newValue != nil
+        })
         .alert(viewModel.errorMessage ?? "", isPresented: $shouldShowAlert) {
             Button("OK", role: .cancel) {
                 if viewModel.shouldSelectNextMonth {
@@ -70,18 +71,42 @@ struct PhotoDeleteView: View {
             viewModel.fetchAssets()
         }
     }
+    var photoPanel: some View {
+        ZStack {
+            if shouldShowAndAnimatePhotoPanale {
+                if let currentDisplayingAsset = viewModel.currentDisplayingAsset {
+                    ZStack {
+                        VStack {
+                            Spacer(minLength: 0)
+                            CurrentAssetDisplay(
+                                displayingAsset: currentDisplayingAsset,
+                                views: views
+                            )
+                            Spacer(minLength: 0)
+                            Text(viewModel.subtitle)
+                                .font(.caption)
+                                .padding(.top, 8)
+                            Divider()
+                            actionButtonBar
+                        }
+                        nextImageOverlay
+                        undoButtonOverlay
+                    }
+                    .transition(.opacity)
+                }
+            }
+            else {
+                LoadingIndicator()
+                    .transition(.opacity)
+            }
+        }
+        .animation(.easeInOut, value: shouldShowAndAnimatePhotoPanale)
+        
+    }
     
     var nextImageOverlay: some View {
         VStack {
             HStack (alignment: .top) {
-                if viewModel.shouldShowUndoButton {
-                    UndoButton {
-                        viewModel.undoLatestAction()
-                    }
-                    .transition(.move(edge: .leading))
-                    .padding(.leading)
-                    .zIndex(1)  // Ensure this is above the video player
-                }
                 Spacer()
                 if let nextImageUIImage = viewModel.nextImage {
                     Image(uiImage: nextImageUIImage)
@@ -94,6 +119,26 @@ struct PhotoDeleteView: View {
                 }
             }
             .padding(.top, 8)
+            Spacer()
+        }
+    }
+    
+    var undoButtonOverlay: some View {
+        VStack {
+            HStack {
+                if viewModel.shouldShowUndoButton {
+                    UndoButton {
+                        viewModel.undoLatestAction()
+                    }
+                    .padding(.leading)
+                    .zIndex(1)
+                    .transition(.move(edge: .leading))
+                }
+                Spacer()
+            }
+            .padding(.top, 8)
+            .animation(.easeInOut, value: viewModel.shouldShowUndoButton)
+
             Spacer()
         }
     }
@@ -121,57 +166,34 @@ struct PhotoDeleteView: View {
                         viewModel.deletePhoto()
                     }
                 }
-            case .confirmDelete:
-                VStack {
-                    Text("You selected \(viewModel.assetsToDelete.count) items to delete.")
-                        .font(.title3)
-                        .padding()
+                .transition(.move(edge: .bottom))
 
+            case .confirmDelete:
+                VStack(spacing: 0) {
+                    Text("You selected \(viewModel.assetsToDelete.count) items to delete.")
+                        .font(.headline)
+                    
                     Button {
                         viewModel.deletePhotoFromDevice()
                     } label: {
                         Text("Confirm")
-                            .font(.title3)
+                            .font(.headline)
                             .frame(maxWidth: .infinity, maxHeight: 44)
                             .foregroundColor(.white)
-                            .padding()
                     }
                     .background(Color.accentColor)
                     .cornerRadius(8)
                     .padding()
                 }
-            case .hideForAds:
+                .transition(.move(edge: .bottom))
+
+            case .hide:
                 EmptyView()
+                    .transition(.move(edge: .bottom))
             }
         }
-        .transition(.move(edge: .bottom))
+        .animation(.easeInOut, value: viewModel.actionButtonState)
         .padding(.horizontal)
-    }
-    
-    var photoPanel: some View {
-        Group {
-            if let currentDisplayingAsset = viewModel.currentDisplayingAsset {
-                ZStack {
-                    VStack {
-                        Spacer()
-                        CurrentAssetDisplay(
-                            displayingAsset: currentDisplayingAsset,
-                            views: views
-                        )
-                        Spacer(minLength: 0)
-                        Text(viewModel.subtitle)
-                            .font(.caption)
-                            .padding(.top, 8)
-                        Divider()
-                        actionButtonBar
-                    }
-                    nextImageOverlay
-                }
-            }
-            else {
-                LoadingIndicator()
-            }
-        }
     }
 }
 

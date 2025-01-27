@@ -18,7 +18,7 @@ enum LatestAction{
 enum ActionButtonState {
     case show
     case confirmDelete
-    case hideForAds
+    case hide
 }
 
 class PhotoDeleteVM: ObservableObject {
@@ -261,7 +261,7 @@ class PhotoDeleteVM: ObservableObject {
             guard let self else { return }
             let tempStateForActionButton = self.actionButtonState
             let tempStateForUndoButton = self.shouldShowUndoButton
-            self.actionButtonState = .hideForAds
+            self.actionButtonState = .hide
             self.nextImage = nil
             self.subtitle = ""
             self.currentDisplayingAsset = .ads

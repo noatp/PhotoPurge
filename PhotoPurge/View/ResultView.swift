@@ -32,15 +32,13 @@ struct ResultView: View {
                     .font(.title2)
                 Spacer()
                 
-                if viewModel.shouldShowReturnButton {
-                    Button(action: {
-                        dismiss()
-                    }) {
-                        Text("Return")
-                            .font(.title2)
-                            .foregroundColor(.blue)
-                            .padding()
-                    }
+                Button(action: {
+                    dismiss()
+                }) {
+                    Text("Return")
+                        .font(.title2)
+                        .foregroundColor(.blue)
+                        .padding()
                 }
             }
         }
