@@ -153,7 +153,10 @@ struct PhotoDeleteView: View {
                 ZStack {
                     VStack {
                         Spacer()
-                        CurrentAssetDisplay(displayingAsset: currentDisplayingAsset)
+                        CurrentAssetDisplay(
+                            displayingAsset: currentDisplayingAsset,
+                            views: views
+                        )
                         Spacer(minLength: 0)
                         Text(viewModel.subtitle)
                             .font(.caption)

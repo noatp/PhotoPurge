@@ -1,57 +1,38 @@
 //
-//  NativeAdViewModel.swift
+//  AdVM.swift
 //  PhotoPurger
 //
 //  Created by Toan Pham on 1/26/25.
 //
 
 import GoogleMobileAds
+import Combine
 
-class NativeAdViewModel: NSObject, ObservableObject, GADNativeAdLoaderDelegate {
-  @Published var nativeAd: GADNativeAd?
-  private var adLoader: GADAdLoader!
-
-  func refreshAd() {
-    adLoader = GADAdLoader(
-      adUnitID: "ca-app-pub-3940256099942544/3986624511",
-      // The UIViewController parameter is optional.
-      rootViewController: nil,
-      adTypes: [.native], options: nil)
-    adLoader.delegate = self
-    adLoader.load(GADRequest())
-  }
-
-  func adLoader(_ adLoader: GADAdLoader, didReceive nativeAd: GADNativeAd) {
-    // Native ad data changes are published to its subscribers.
-    self.nativeAd = nativeAd
-    nativeAd.delegate = self
-  }
-
-  func adLoader(_ adLoader: GADAdLoader, didFailToReceiveAdWithError error: Error) {
-    print("\(adLoader) failed with error: \(error.localizedDescription)")
-  }
+class NativeAdVM: ObservableObject{
+    @Published var nativeAd: GADNativeAd?
+    
+    private let adService: AdService
+    private var subscriptions: [AnyCancellable] = []
+    
+    init(adService: AdService) {
+        self.adService = adService
+        self.addSubscription()
+    }
+    
+    func refreshAd() {
+        adService.refreshAd()
+    }
+    
+    private func addSubscription() {
+        adService.$nativeAd.sink { [weak self] nativeAd in
+            self?.nativeAd = nativeAd
+        }
+        .store(in: &subscriptions)
+    }
 }
-// [END create_view_model]
 
-// MARK: - GADNativeAdDelegate implementation
-extension NativeAdViewModel: GADNativeAdDelegate {
-  func nativeAdDidRecordClick(_ nativeAd: GADNativeAd) {
-    print("\(#function) called")
-  }
-
-  func nativeAdDidRecordImpression(_ nativeAd: GADNativeAd) {
-    print("\(#function) called")
-  }
-
-  func nativeAdWillPresentScreen(_ nativeAd: GADNativeAd) {
-    print("\(#function) called")
-  }
-
-  func nativeAdWillDismissScreen(_ nativeAd: GADNativeAd) {
-    print("\(#function) called")
-  }
-
-  func nativeAdDidDismissScreen(_ nativeAd: GADNativeAd) {
-    print("\(#function) called")
-  }
+extension Dependency.ViewModels {
+    func nativeAdVM() -> NativeAdVM {
+        return NativeAdVM(adService: services.adService)
+    }
 }

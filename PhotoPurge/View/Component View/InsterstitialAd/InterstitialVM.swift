@@ -1,5 +1,5 @@
 //
-//  InsterstitialViewModel.swift
+//  InterstitialVM.swift
 //  PhotoPurger
 //
 //  Created by Toan Pham on 1/25/25.
@@ -7,7 +7,7 @@
 
 import GoogleMobileAds
 
-class InterstitialViewModel: NSObject, ObservableObject, GADFullScreenContentDelegate {
+class InterstitialVM: NSObject, ObservableObject {
     @Published var shouldShowReturnButton: Bool = false
     private var interstitialAd: GADInterstitialAd?
     
@@ -15,16 +15,12 @@ class InterstitialViewModel: NSObject, ObservableObject, GADFullScreenContentDel
         do {
             interstitialAd = try await GADInterstitialAd.load(
                 withAdUnitID: "ca-app-pub-3940256099942544/4411468910", request: GADRequest())
-            // [START set_the_delegate]
             interstitialAd?.fullScreenContentDelegate = self
-            // [END set_the_delegate]
         } catch {
             print("Failed to load interstitial ad with error: \(error.localizedDescription)")
         }
     }
-    // [END load_ad]
     
-    // [START show_ad]
     func showAd() {
         guard let interstitialAd = interstitialAd else {
             return print("Ad wasn't ready.")
@@ -32,11 +28,12 @@ class InterstitialViewModel: NSObject, ObservableObject, GADFullScreenContentDel
         
         interstitialAd.present(fromRootViewController: nil)
     }
-    // [END show_ad]
     
     // MARK: - GADFullScreenContentDelegate methods
     
-    // [START ad_events]
+}
+
+extension InterstitialVM: GADFullScreenContentDelegate {
     func adDidRecordImpression(_ ad: GADFullScreenPresentingAd) {
         print("\(#function) called")
     }
@@ -67,7 +64,11 @@ class InterstitialViewModel: NSObject, ObservableObject, GADFullScreenContentDel
         print("\(#function) called")
         // Clear the interstitial ad.
         interstitialAd = nil
-        
     }
-    // [END ad_events]
+}
+
+extension Dependency.ViewModels {
+    func interstitialVM() -> InterstitialVM {
+        return InterstitialVM()
+    }
 }
