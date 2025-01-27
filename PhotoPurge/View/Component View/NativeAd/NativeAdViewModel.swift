@@ -26,6 +26,9 @@ class NativeAdVM: ObservableObject{
     private func addSubscription() {
         adService.$nativeAd.sink { [weak self] nativeAd in
             self?.nativeAd = nativeAd
+            if nativeAd == nil {
+                self?.adService.refreshAd()
+            }
         }
         .store(in: &subscriptions)
     }

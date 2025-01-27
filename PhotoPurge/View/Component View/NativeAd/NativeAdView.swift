@@ -11,14 +11,17 @@ import GoogleMobileAds
 struct NativeAdView: UIViewRepresentable {
     typealias UIViewType = GADNativeAdView
     
-    @ObservedObject var viewModel: NativeAdVM
+    private let nativeAd: GADNativeAd
+    
+    init(nativeAd: GADNativeAd) {
+        self.nativeAd = nativeAd
+    }
     
     func makeUIView(context: Context) -> GADNativeAdView {
         return Bundle.main.loadNibNamed("NativeAdView", owner: nil, options: nil)?.first as! GADNativeAdView
     }
     
     func updateUIView(_ nativeAdView: GADNativeAdView, context: Context) {
-        guard let nativeAd = viewModel.nativeAd else { return }
         
         (nativeAdView.headlineView as? UILabel)?.text = nativeAd.headline
         

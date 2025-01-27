@@ -24,26 +24,26 @@ struct NativeAdContentView: View {
     
     var body: some View {
         GeometryReader { proxy in
-            VStack(spacing: 0) {
-                NativeAdView(viewModel: viewModel)
-                    .frame(width: proxy.size.width, height: proxy.size.height)
-                ProgressView(value: progress, total: 1.0)
-                    .progressViewStyle(.linear)
+            if let nativeAd = viewModel.nativeAd {
+                VStack(spacing: 0) {
+                    NativeAdView(nativeAd: nativeAd)
+                        .frame(width: proxy.size.width, height: proxy.size.height)
+                    ProgressView(value: progress, total: 1.0)
+                        .progressViewStyle(.linear)
+                }
             }
-            
+            else {
+                LoadingIndicator()
+                    .frame(width: proxy.size.width, height: proxy.size.height)
+            }
         }
         .task {
-            refreshAd()
             startIncrementing()
         }
         .onDisappear {
             timer?.invalidate()
         }
         .navigationTitle("Sponsor")
-    }
-    
-    private func refreshAd() {
-        viewModel.refreshAd()
     }
     
     private func startIncrementing() {
