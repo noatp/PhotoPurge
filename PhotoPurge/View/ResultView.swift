@@ -53,7 +53,6 @@ struct ResultView: View {
         .task {
             if !didShowAd {
                 Task {
-                    await interstitialVM.loadAd()
                     interstitialVM.showAd()
                     didShowAd = true
                 }
@@ -63,7 +62,7 @@ struct ResultView: View {
 }
 
 #Preview {
-    ResultView(resultVM: .init(deleteResult: .init()), interstitialVM: .init())
+    ResultView(resultVM: .init(deleteResult: .init()), interstitialVM: .init(shouldShowReturnButton: true))
 }
 
 extension Dependency.Views {

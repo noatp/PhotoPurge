@@ -6,31 +6,42 @@
 //
 
 import GoogleMobileAds
+import Combine
 
 class InterstitialVM: NSObject, ObservableObject {
     @Published var shouldShowReturnButton: Bool = false
+    private let adService: AdService
+
     private var interstitialAd: GADInterstitialAd?
+    private var subscriptions: Set<AnyCancellable> = []
     
-    func loadAd() async {
-        do {
-            interstitialAd = try await GADInterstitialAd.load(
-                withAdUnitID: "ca-app-pub-3940256099942544/4411468910", request: GADRequest())
-            interstitialAd?.fullScreenContentDelegate = self
-        } catch {
-            print("Failed to load interstitial ad with error: \(error.localizedDescription)")
-        }
+    init(adService: AdService) {
+        self.adService = adService
+        super.init()
+        addSubscription()
     }
     
+    init(shouldShowReturnButton: Bool) {
+        self.shouldShowReturnButton = shouldShowReturnButton
+        self.adService = .init()
+        super.init()
+    }
+
     func showAd() {
         guard let interstitialAd = interstitialAd else {
             return print("Ad wasn't ready.")
         }
-        
+        interstitialAd.fullScreenContentDelegate = self
         interstitialAd.present(fromRootViewController: nil)
     }
     
-    // MARK: - GADFullScreenContentDelegate methods
-    
+    private func addSubscription() {
+        adService.$interstitialAd.sink { [weak self] interstitialAd in
+            guard let self = self else { return }
+            self.interstitialAd = interstitialAd
+        }
+        .store(in: &subscriptions)
+    }
 }
 
 extension InterstitialVM: GADFullScreenContentDelegate {
@@ -64,11 +75,12 @@ extension InterstitialVM: GADFullScreenContentDelegate {
         print("\(#function) called")
         // Clear the interstitial ad.
         interstitialAd = nil
+        adService.loadInterstitialAd()
     }
 }
 
 extension Dependency.ViewModels {
     func interstitialVM() -> InterstitialVM {
-        return InterstitialVM()
+        return InterstitialVM(adService: services.adService)
     }
 }

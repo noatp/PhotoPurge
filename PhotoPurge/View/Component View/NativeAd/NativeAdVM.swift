@@ -1,5 +1,5 @@
 //
-//  AdVM.swift
+//  NativeAdVM.swift
 //  PhotoPurger
 //
 //  Created by Toan Pham on 1/26/25.
@@ -19,15 +19,11 @@ class NativeAdVM: ObservableObject{
         self.addSubscription()
     }
     
-    func refreshAd() {
-        adService.refreshAd()
-    }
-    
     private func addSubscription() {
         adService.$nativeAd.sink { [weak self] nativeAd in
             self?.nativeAd = nativeAd
             if nativeAd == nil {
-                self?.adService.refreshAd()
+                self?.adService.refreshNativeAd()
             }
         }
         .store(in: &subscriptions)
