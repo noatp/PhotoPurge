@@ -9,16 +9,13 @@ import SwiftUI
 
 struct ResultView: View {
     @ObservedObject private var viewModel: ResultVM
-    @ObservedObject private var interstitialVM: InterstitialVM
     @Environment(\.dismiss) private var dismiss
     @State private var didShowAd: Bool = false
         
     init(
-        resultVM: ResultVM,
-        interstitialVM: InterstitialVM
+        resultVM: ResultVM
     ) {
         self.viewModel = resultVM
-        self.interstitialVM = interstitialVM
     }
     
     var body: some View {
@@ -35,8 +32,7 @@ struct ResultView: View {
                     .font(.title2)
                 Spacer()
                 
-                // Button to pop the views back to MonthPickerView
-                if interstitialVM.shouldShowReturnButton {
+                if viewModel.shouldShowReturnButton {
                     Button(action: {
                         dismiss()
                     }) {
@@ -53,7 +49,7 @@ struct ResultView: View {
         .task {
             if !didShowAd {
                 Task {
-                    interstitialVM.showAd()
+                    viewModel.showAd()
                     didShowAd = true
                 }
             }
@@ -62,14 +58,13 @@ struct ResultView: View {
 }
 
 #Preview {
-    ResultView(resultVM: .init(deleteResult: .init()), interstitialVM: .init(shouldShowReturnButton: true))
+    ResultView(resultVM: .init(deleteResult: .init()))
 }
 
 extension Dependency.Views {
     func resultView() -> ResultView {
         return ResultView(
-            resultVM: viewModels.resultVM(),
-            interstitialVM: viewModels.interstitialVM()
+            resultVM: viewModels.resultVM()
         )
     }
 }
