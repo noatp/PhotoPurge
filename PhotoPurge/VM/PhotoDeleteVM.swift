@@ -86,18 +86,20 @@ class PhotoDeleteVM: ObservableObject {
         self.errorMessage = errorMessage
         self.subtitle = subtitle
         self.title = title
-
+        
         self.assetService = .init()
     }
     
     private func addSubscription() {
-        assetService.$assetsGroupedByMonth.sink { [weak self] assetsGroupedByMonth in
-            if let assetsGroupedByMonth = assetsGroupedByMonth {
-                self?.assetsGroupedByMonth = assetsGroupedByMonth
-                self?.initMonthAsset()
+        assetService.$assetsGroupedByMonth
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] assetsGroupedByMonth in
+                if let assetsGroupedByMonth = assetsGroupedByMonth {
+                    self?.assetsGroupedByMonth = assetsGroupedByMonth
+                    self?.initMonthAsset()
+                }
             }
-        }
-        .store(in: &subscriptions)
+            .store(in: &subscriptions)
     }
     
 #if DEBUG
@@ -105,7 +107,7 @@ class PhotoDeleteVM: ObservableObject {
         print("PhotoDeleteVM deinit")
     }
 #endif
-        
+    
     func keepPhoto() {
         guard actionButtonState == .show else { return }
         guard let assets, pastActions.count < assets.count else { return }
@@ -135,7 +137,7 @@ class PhotoDeleteVM: ObservableObject {
         guard let assets = assetsGroupedByMonth[date] else {
             return
         }
-               
+        
         resetForNewMonth()
         self.selectedMonth = date
         self.assets = assets
@@ -229,7 +231,7 @@ class PhotoDeleteVM: ObservableObject {
     
     func selectNextMonth() {
         guard let assetsGroupedByMonth, let selectedMonth else { return }
-
+        
         guard let nextMonth = nextKey(after: selectedMonth, in: assetsGroupedByMonth) else {
             return
         }
@@ -295,7 +297,7 @@ class PhotoDeleteVM: ObservableObject {
             }
             return
         }
-
+        
         let nextAsset = assets[currentIndex + 1]
         assetService.fetchPhotoForAsset(nextAsset) { [weak self] result in
             guard let self = self else { return }

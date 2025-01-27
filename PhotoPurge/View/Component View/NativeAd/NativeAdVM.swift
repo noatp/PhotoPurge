@@ -20,13 +20,15 @@ class NativeAdVM: ObservableObject{
     }
     
     private func addSubscription() {
-        adService.$nativeAd.sink { [weak self] nativeAd in
-            self?.nativeAd = nativeAd
-            if nativeAd == nil {
-                self?.adService.refreshNativeAd()
+        adService.$nativeAd
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] nativeAd in
+                self?.nativeAd = nativeAd
+                if nativeAd == nil {
+                    self?.adService.refreshNativeAd()
+                }
             }
-        }
-        .store(in: &subscriptions)
+            .store(in: &subscriptions)
     }
 }
 
