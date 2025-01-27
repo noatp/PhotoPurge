@@ -39,7 +39,7 @@ struct MonthPickerRow: View {
                 .foregroundColor(date == selectedDate ? .white : .primary)
             
             Text(Util.getShortMonth(from: date))
-                .font(.title2)
+                .font(.headline)
                 .padding(.bottom, 5)
                 .foregroundColor(date == selectedDate ? .white : .primary)
             
@@ -48,7 +48,7 @@ struct MonthPickerRow: View {
                 .foregroundColor(date == selectedDate ? .white : .secondary)
         }
         .padding(.horizontal, 32)
-        .padding(.vertical, 8)
+        .padding(.vertical, 4)
         .background(
             RoundedRectangle(cornerRadius: 12)
                 .fill(date == selectedDate ? Color.blue : Color.secondary.opacity(0.3))

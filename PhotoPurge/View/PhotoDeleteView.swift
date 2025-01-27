@@ -93,6 +93,7 @@ struct PhotoDeleteView: View {
                         .padding(.trailing)
                 }
             }
+            .padding(.top, 8)
             Spacer()
         }
     }
@@ -160,7 +161,7 @@ struct PhotoDeleteView: View {
                         Spacer(minLength: 0)
                         Text(viewModel.subtitle)
                             .font(.caption)
-                            .padding(.top)
+                            .padding(.top, 8)
                         Divider()
                         actionButtonBar
                     }
