@@ -71,6 +71,7 @@ struct PhotoDeleteView: View {
             viewModel.fetchAssets()
         }
     }
+    
     var photoPanel: some View {
         ZStack {
             if shouldShowAndAnimatePhotoPanale {
@@ -83,9 +84,7 @@ struct PhotoDeleteView: View {
                                 views: views
                             )
                             Spacer(minLength: 0)
-                            Text(viewModel.subtitle)
-                                .font(.caption)
-                                .padding(.top, 8)
+                            subtitle
                             Divider()
                             actionButtonBar
                         }
@@ -138,7 +137,7 @@ struct PhotoDeleteView: View {
             }
             .padding(.top, 8)
             .animation(.easeInOut, value: viewModel.shouldShowUndoButton)
-
+            
             Spacer()
         }
     }
@@ -167,7 +166,7 @@ struct PhotoDeleteView: View {
                     }
                 }
                 .transition(.move(edge: .bottom))
-
+                
             case .confirmDelete:
                 VStack(spacing: 0) {
                     Text("You selected \(viewModel.assetsToDelete.count) items to delete.")
@@ -186,14 +185,36 @@ struct PhotoDeleteView: View {
                     .padding()
                 }
                 .transition(.move(edge: .bottom))
-
+                
             case .hide:
                 EmptyView()
                     .transition(.move(edge: .bottom))
+            case .ads:
+                VStack(spacing: 0) {
+                    LabelActionButton(
+                        labelText: "Skip",
+                        backgroundColor: .accentColor,
+                        foregroundColor: .white
+                    ) {
+                        viewModel.skipAds()
+                    }
+                }
+                .transition(.move(edge: .bottom))
             }
+            
         }
         .animation(.easeInOut, value: viewModel.actionButtonState)
         .padding(.horizontal)
+    }
+    
+    var subtitle: some View {
+        ZStack {
+            if let subtitle = viewModel.subtitle {
+                Text(subtitle)
+                    .font(.caption)
+                    .padding(.top, 8)
+            }
+        }
     }
 }
 
@@ -210,7 +231,7 @@ struct PhotoDeleteView: View {
         PhotoDeleteView(
             viewModel: .init(
                 assetsGroupedByMonth: assetsGroupedByMonth,
-                currentDisplayingAsset: .init(assetType: .photo, image: .init(named: "test2")),
+                currentDisplayingAsset: .init(assetType: .photo, image: .init(named: "test1")),
                 nextImage: .init(named: "test1"),
                 shouldShowUndoButton: false,
                 shouldNavigateToResult: false,

@@ -19,6 +19,7 @@ enum ActionButtonState {
     case show
     case confirmDelete
     case hide
+    case ads
 }
 
 class PhotoDeleteVM: ObservableObject {
@@ -31,7 +32,7 @@ class PhotoDeleteVM: ObservableObject {
     @Published var shouldSelectNextMonth: Bool = false
     @Published var selectedMonth: Date?
     @Published var errorMessage: String?
-    @Published var subtitle: String = ""
+    @Published var subtitle: String?
     @Published var title: String = ""
     @Published var assetsToDelete: [PHAsset] = []
     
@@ -40,6 +41,8 @@ class PhotoDeleteVM: ObservableObject {
     private var assets: [PHAsset]?
     private var isDeletingPhotos: Bool = false
     private var isShowingAds: Bool = false
+    private var actionButtonStateBeforeShowingAds: ActionButtonState?
+    private var undoButtonStateBeforeShowingAds: Bool?
     private var restoreButtonsAfterAdsWorkItem: DispatchWorkItem?
     private var pastActions: [LatestAction] = [] {
         didSet {
@@ -237,6 +240,19 @@ class PhotoDeleteVM: ObservableObject {
         selectMonth(date: nextMonth)
     }
     
+    func skipAds() {
+        isShowingAds = false
+        fetchNewPhotos()
+        DispatchQueue.main.async { [weak self] in
+            guard let self,
+                  let actionButtonStateBeforeShowingAds = self.actionButtonStateBeforeShowingAds,
+                  let undoButtonStateBeforeShowingAds = self.undoButtonStateBeforeShowingAds
+            else { return }
+            self.actionButtonState = actionButtonStateBeforeShowingAds
+            self.shouldShowUndoButton = undoButtonStateBeforeShowingAds
+        }
+    }
+    
     private func initMonthAsset() {
         guard let assetsGroupedByMonth else { return }
         
@@ -259,17 +275,16 @@ class PhotoDeleteVM: ObservableObject {
         isShowingAds = true
         DispatchQueue.main.async { [weak self] in
             guard let self else { return }
-            let tempStateForActionButton = self.actionButtonState
-            let tempStateForUndoButton = self.shouldShowUndoButton
+            self.actionButtonStateBeforeShowingAds = self.actionButtonState
+            self.undoButtonStateBeforeShowingAds = self.shouldShowUndoButton
             self.actionButtonState = .hide
             self.nextImage = nil
-            self.subtitle = ""
+            self.subtitle = nil
             self.currentDisplayingAsset = .ads
             self.shouldShowUndoButton = false
             self.restoreButtonsAfterAdsWorkItem = DispatchWorkItem { [weak self] in
                 guard let self = self else { return }
-                self.actionButtonState = tempStateForActionButton
-                self.shouldShowUndoButton = tempStateForUndoButton
+                self.actionButtonState = .ads
             }
             
             guard let restoreButtonsAfterAdsWorkItem = self.restoreButtonsAfterAdsWorkItem else { return }
