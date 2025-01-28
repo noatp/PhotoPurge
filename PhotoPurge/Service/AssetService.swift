@@ -281,7 +281,11 @@ class AssetService: ObservableObject {
         
         dispatchGroup.notify(queue: .main) {
             if let error = encounteredError {
-                completion(.failure(error))
+                completion(.success(totalSize))
+#if DEBUG
+                print("Error calculating total asset size: \(error)")
+#endif
+//                completion(.failure(error))
             } else {
                 completion(.success(totalSize))
             }
