@@ -32,6 +32,7 @@ struct PhotoDeleteView: View {
                         viewModel.selectMonth(date: month)
                     }
                     Divider()
+                        .padding(.bottom, 8)
                     photoPanel
                 }
             }
@@ -117,7 +118,6 @@ struct PhotoDeleteView: View {
                         .padding(.trailing)
                 }
             }
-            .padding(.top, 8)
             Spacer()
         }
     }
@@ -135,7 +135,6 @@ struct PhotoDeleteView: View {
                 }
                 Spacer()
             }
-            .padding(.top, 8)
             .animation(.easeInOut, value: viewModel.shouldShowUndoButton)
             
             Spacer()
@@ -171,18 +170,14 @@ struct PhotoDeleteView: View {
                 VStack(spacing: 0) {
                     Text("You selected \(viewModel.assetsToDelete.count) items to delete.")
                         .font(.headline)
-                    
-                    Button {
+                        .padding(.bottom)
+                    LabelActionButton(
+                        labelText: "Confirm",
+                        backgroundColor: .accentColor,
+                        foregroundColor: .white
+                    ) {
                         viewModel.deletePhotoFromDevice()
-                    } label: {
-                        Text("Confirm")
-                            .font(.headline)
-                            .frame(maxWidth: .infinity, maxHeight: 44)
-                            .foregroundColor(.white)
                     }
-                    .background(Color.accentColor)
-                    .cornerRadius(8)
-                    .padding()
                 }
                 .transition(.move(edge: .bottom))
                 
@@ -235,7 +230,7 @@ struct PhotoDeleteView: View {
                 nextImage: .init(named: "test1"),
                 shouldShowUndoButton: false,
                 shouldNavigateToResult: false,
-                actionButtonState: .show,
+                actionButtonState: .confirmDelete,
                 selectedMonth: today,
                 errorMessage: nil,
                 subtitle: "2 of 3",

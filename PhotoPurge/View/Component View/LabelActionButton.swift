@@ -30,6 +30,7 @@ struct LabelActionButton: View {
             action()
         } label: {
             Text(labelText)
+                .font(.headline)
                 .scaledToFit()
                 .frame(maxWidth: .infinity, maxHeight: 44)
                 .foregroundColor(foregroundColor)
