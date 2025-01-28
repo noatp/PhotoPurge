@@ -9,18 +9,25 @@ import Foundation
 
 class Dependency {
     private let assetService: AssetService
+    private let adService: AdService
     
-    init(assetService: AssetService = .init()) {
+    init(
+        assetService: AssetService = .init(),
+        adService: AdService = .init()
+    ) {
         self.assetService = assetService
+        self.adService = adService
     }
     
     static let preview: Dependency = .init()
     
     class Services {
         let assetService: AssetService
+        let adService: AdService
         
         init(dependency: Dependency) {
             self.assetService = dependency.assetService
+            self.adService = dependency.adService
         }
     }
     

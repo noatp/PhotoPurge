@@ -10,8 +10,11 @@ import SwiftUI
 struct ResultView: View {
     @ObservedObject private var viewModel: ResultVM
     @Environment(\.dismiss) private var dismiss
-    
-    init(resultVM: ResultVM) {
+    @State private var didShowAd: Bool = false
+        
+    init(
+        resultVM: ResultVM
+    ) {
         self.viewModel = resultVM
     }
     
@@ -29,7 +32,6 @@ struct ResultView: View {
                     .font(.title2)
                 Spacer()
                 
-                // Button to pop the views back to MonthPickerView
                 Button(action: {
                     dismiss()
                 }) {
@@ -42,6 +44,14 @@ struct ResultView: View {
         }
         .navigationTitle("Result")
         .navigationBarBackButtonHidden(true) // Hide the default back button
+        .task {
+            if !didShowAd {
+                Task {
+                    viewModel.showAd()
+                    didShowAd = true
+                }
+            }
+        }
     }
 }
 
