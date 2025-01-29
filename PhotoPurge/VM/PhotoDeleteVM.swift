@@ -28,8 +28,8 @@ class PhotoDeleteVM: ObservableObject {
     @Published var nextImage: UIImage?
     @Published var shouldShowUndoButton: Bool = false
     @Published var shouldNavigateToResult: Bool = false
-    @Published var actionButtonState: ActionButtonState = .show
     @Published var shouldSelectNextMonth: Bool = false
+    @Published var actionButtonState: ActionButtonState = .show
     @Published var selectedMonth: Date?
     @Published var errorMessage: String?
     @Published var subtitle: String?
@@ -219,7 +219,17 @@ class PhotoDeleteVM: ObservableObject {
                 case .failure(let error):
                     switch error {
                     case .deleteEmptyList(_):
-                        self?.shouldSelectNextMonth = true
+                        guard let self,
+                              let assetsGroupedByMonth,
+                              let selectedMonth,
+                              let _ = nextKey(after: selectedMonth, in: assetsGroupedByMonth)
+                        else {
+                            self?.errorMessage = "You are all set!"
+                            self?.actionButtonState = .hide
+                            self?.isDeletingPhotos = false
+                            return
+                        }
+                        self.shouldSelectNextMonth = true
                     default:
                         break
                     }
