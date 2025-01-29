@@ -75,7 +75,6 @@ enum AssetServiceError: LocalizedError {
 }
 
 class AssetService: ObservableObject {
-    @Published var isLoading: Bool?
     @Published var assetsGroupedByMonth: [Date: [PHAsset]]?
     @Published var deleteResult: DeleteResult?
     private let imageManager = PHImageManager.default()
@@ -111,10 +110,8 @@ class AssetService: ObservableObject {
             switch status {
             case .denied:
                 completion(.failure(AssetServiceError.accessDenied(message: "")))
-            case .authorized:
-                completion(.success(()))
             default:
-                completion(.failure(AssetServiceError.authorizationIssue(message: "\(status.rawValue)")))
+                completion(.success(()))
             }
         }
     }
@@ -123,7 +120,6 @@ class AssetService: ObservableObject {
 #if DEBUG
         print("LOAD DATA")
 #endif
-        isLoading = true
         
         let fetchOptions = PHFetchOptions()
         fetchOptions.sortDescriptors = [NSSortDescriptor(key: "creationDate", ascending: true)]
@@ -144,7 +140,6 @@ class AssetService: ObservableObject {
         }
         
         self.assetsGroupedByMonth = groupedByMonth
-        self.isLoading = false
     }
     
     func fetchPhotoForAsset(_ asset: PHAsset, completion: @escaping (Result<UIImage, AssetServiceError>) -> Void) {
