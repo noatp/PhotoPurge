@@ -24,16 +24,21 @@ struct PhotoDeleteView: View {
     var body: some View {
         Group {
             if let assetsGroupedByMonth = viewModel.assetsGroupedByMonth {
-                VStack {
-                    MonthPickerRow(
-                        selectedDate: $viewModel.selectedMonth,
-                        assetsGroupedByMonth: assetsGroupedByMonth
-                    ) { month in
-                        viewModel.selectMonth(date: month)
+                if !assetsGroupedByMonth.isEmpty {
+                    VStack {
+                        MonthPickerRow(
+                            selectedDate: $viewModel.selectedMonth,
+                            assetsGroupedByMonth: assetsGroupedByMonth
+                        ) { month in
+                            viewModel.selectMonth(date: month)
+                        }
+                        Divider()
+                            .padding(.bottom, 8)
+                        photoPanel
                     }
-                    Divider()
-                        .padding(.bottom, 8)
-                    photoPanel
+                }
+                else {
+                    noPhotosWarningView
                 }
             }
             else {
@@ -211,6 +216,28 @@ struct PhotoDeleteView: View {
             }
         }
     }
+    
+    var noPhotosWarningView: some View {
+        VStack {
+            Text("No Accessible Photos Found")
+                .font(.title2)
+                .bold()
+                .padding()
+            
+            Text("We couldn’t find any photos you’ve granted access to. Please allow full photo access or select specific photos and tap \"Reload\" to continue.")
+                .font(.headline)
+                .padding()
+            Button {
+                viewModel.openSettings()
+            } label: {
+                Text("Go to settings")
+                    .font(.headline)
+            }
+            .padding()
+        
+        }
+        .multilineTextAlignment(.center)
+    }
 }
 
 #Preview {
@@ -225,7 +252,7 @@ struct PhotoDeleteView: View {
     NavigationStack {
         PhotoDeleteView(
             viewModel: .init(
-                assetsGroupedByMonth: assetsGroupedByMonth,
+                assetsGroupedByMonth: [:],
                 currentDisplayingAsset: .init(assetType: .photo, image: .init(named: "test1")),
                 nextImage: .init(named: "test1"),
                 shouldShowUndoButton: false,

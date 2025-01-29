@@ -8,16 +8,21 @@
 import SwiftUI
 
 struct ContentView: View {
-    @State private var isFirstLaunch: Bool = UserDefaults.standard.bool(forKey: "hasLaunchedBefore") == false
-    private let views: Dependency.Views
+    @Environment(\.viewsFactory) var views: Dependency.Views
+    @StateObject var viewModel: WelcomeVM
     
-    init(views: Dependency.Views) {
-        self.views = views
+    init(
+        viewModel: WelcomeVM
+    ) {
+        _viewModel = StateObject(wrappedValue: viewModel)
     }
-
+    
     var body: some View {
-        if isFirstLaunch {
-            WelcomeScreen(isFirstLaunch: $isFirstLaunch)
+        if viewModel.isFirstLaunch {
+            NavigationStack {
+                views.introView()
+            }
+            .environmentObject(viewModel)
         } else {
             NavigationStack {
                 views.photoDeleteView()
@@ -27,5 +32,13 @@ struct ContentView: View {
 }
 
 #Preview {
-    ContentView(views: Dependency.preview.views())
+    ContentView(viewModel: .init(canRetry: false, showAlert: false, isFirstLaunch: true))
+}
+
+extension Dependency.Views {
+    func contentView() -> ContentView {
+        return ContentView(
+            viewModel: viewModels.welcomeVM()
+        )
+    }
 }
