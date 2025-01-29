@@ -89,6 +89,7 @@ struct PhotoDeleteView: View {
                                 displayingAsset: currentDisplayingAsset,
                                 views: views
                             )
+                            .padding(.horizontal, 8)
                             Spacer(minLength: 0)
                             subtitle
                             Divider()
