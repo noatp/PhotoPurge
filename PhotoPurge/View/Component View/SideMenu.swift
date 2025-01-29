@@ -32,31 +32,34 @@ struct SideMenu: View {
     @State private var shouldPresent: Bool = false
     
     var body: some View {
-        ZStack {
-            if isShowingSideMenu {
-                Rectangle()
-                    .opacity(0.4)
-                    .ignoresSafeArea()
-                    .onTapGesture {
-                        isShowingSideMenu.toggle()
-                    }
-                HStack {
-                    VStack(alignment: .leading) {
-                        Text("Menu")
-                            .font(.title)
-                            .bold()
-                            .padding()
-                        ForEach(SideMenuOptions.allCases, id: \.title) { sideMenuOption in
-                            SideMenuOptionRow(sideMenuOption: sideMenuOption, selectedOption: $selectedOption)
+        GeometryReader { geometry in
+            ZStack {
+                if isShowingSideMenu {
+                    Rectangle()
+                        .opacity(0.4)
+                        .ignoresSafeArea()
+                        .onTapGesture {
+                            isShowingSideMenu.toggle()
                         }
+                    HStack {
+                        VStack(alignment: .leading) {
+                            Text("Menu")
+                                .font(.title)
+                                .bold()
+                                .padding()
+                            ForEach(SideMenuOptions.allCases, id: \.title) { sideMenuOption in
+                                SideMenuOptionRow(sideMenuOption: sideMenuOption, selectedOption: $selectedOption)
+                                    .padding(.horizontal)
+                            }
+                            Spacer()
+                        }
+                        .frame(width: geometry.size.width * 0.7, height: geometry.size.height, alignment: .leading)
+                        .background(Color(UIColor.systemBackground))
                         Spacer()
                     }
-                    .padding()
-                    .frame(width: 270, alignment: .leading)
-                    .background(Color(UIColor.systemBackground))
-                    Spacer()
+                    .transition(.move(edge: .leading))
                 }
-                .transition(.move(edge: .leading))
+                
             }
             
         }

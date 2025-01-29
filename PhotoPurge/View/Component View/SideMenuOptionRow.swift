@@ -19,20 +19,24 @@ struct SideMenuOptionRow: View {
     }
     
     var body: some View {
-        Button {
-            selectedOption = sideMenuOption
-        } label: {
-            HStack {
-                Image(systemName: sideMenuOption.systemImageName)
-                    .imageScale(.large)
-                Text(sideMenuOption.title)
-                    .font(.headline)
+        GeometryReader { geometry in
+            Button {
+                selectedOption = sideMenuOption
+            } label: {
+                HStack {
+                    Image(systemName: sideMenuOption.systemImageName)
+                        .imageScale(.large)
+                    Text(sideMenuOption.title)
+                        .font(.headline)
+                }
             }
+            .padding()
+            .frame(width: geometry.size.width, alignment: .leading)
+            .foregroundStyle(.primary)
+            .background(selectedOption == sideMenuOption ? .blue.opacity(0.5) : .clear)
+            .clipShape(RoundedRectangle(cornerRadius: 8))
         }
-        .padding()
-        .foregroundStyle(selectedOption == sideMenuOption ? .blue : .primary)
-        .background(selectedOption == sideMenuOption ? .blue.opacity(0.1) : .clear)
-        .clipShape(RoundedRectangle(cornerRadius: 8))
+        .frame(height: 60)
     }
 }
 
