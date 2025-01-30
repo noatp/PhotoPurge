@@ -162,15 +162,19 @@ class PhotoDeleteVM: ObservableObject {
     
     func fetchNewPhotos() {
         guard let assets else { return }
-        if isShowingAds {
-            isShowingAds = false
+        
+        if !shouldDisableAds {
+            if isShowingAds {
+                isShowingAds = false
+            }
+            photosWithoutAds += 1
+            guard photosWithoutAds < NativeAdConstant.photosLimitPerAd else {
+                photosWithoutAds = 0
+                showAds()
+                return
+            }
         }
-        photosWithoutAds += 1
-        guard photosWithoutAds < NativeAdConstant.photosLimitPerAd else {
-            photosWithoutAds = 0
-            showAds()
-            return
-        }
+        
         currentAssetIndex += 1
         if isIndexValid(currentAssetIndex){
             assetService.prefetchAssets(around: currentAssetIndex, from: assets)
