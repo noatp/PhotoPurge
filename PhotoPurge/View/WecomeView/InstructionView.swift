@@ -9,6 +9,11 @@ import SwiftUI
 
 struct InstructionView: View {
     @Environment(\.viewsFactory) var views: Dependency.Views
+    private let shouldShowContinueButton: Bool
+    
+    init(shouldShowContinueButton: Bool) {
+        self.shouldShowContinueButton = shouldShowContinueButton
+    }
     
     var body: some View {
         GeometryReader { geometry in
@@ -23,7 +28,7 @@ struct InstructionView: View {
                     
                     Text("Navigate through your photos of a month,")
                         .font(.title)
-                        .lineLimit(2)
+                        .lineLimit(4)
                         .padding()
                     Group {
                         Text("and select the ") +
@@ -39,9 +44,11 @@ struct InstructionView: View {
                     .font(.title3)
                     .padding()
                     
-                    NavigationLink("Continue", value: WelcomeScreen.requestAccess)
-                        .font(.headline)
-                        .padding()
+                    if shouldShowContinueButton {
+                        NavigationLink("Continue", value: WelcomeScreen.requestAccess)
+                            .font(.headline)
+                            .padding()
+                    }
                 }
                 .frame(maxWidth: geometry.size.width * 0.9) // Allow 10% padding for readability
                 .multilineTextAlignment(.center)
@@ -52,12 +59,12 @@ struct InstructionView: View {
 
 #Preview {
     NavigationStack {
-        InstructionView()
+        InstructionView(shouldShowContinueButton: false)
     }
 }
 
 extension Dependency.Views {
-    func instructionView() -> InstructionView {
-        return InstructionView()
+    func instructionView(shouldShowContinueButton: Bool) -> InstructionView {
+        return InstructionView(shouldShowContinueButton: shouldShowContinueButton)
     }
 }

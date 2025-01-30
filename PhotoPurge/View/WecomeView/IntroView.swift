@@ -49,7 +49,7 @@ struct IntroView: View {
             case .intro:
                 views.introView()
             case .instruction:
-                views.instructionView()
+                views.instructionView(shouldShowContinueButton: true)
             case .requestAccess:
                 views.requestAccessView()
             }

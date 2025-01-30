@@ -85,7 +85,7 @@ struct SideMenu: View {
         Group {
             switch option {
             case .instruction:
-                views.instructionView()
+                views.instructionView(shouldShowContinueButton: false)
             case .redeem:
                 Text("redeem")
             }
