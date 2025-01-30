@@ -9,9 +9,10 @@ struct MonthPickerRow: View {
     var body: some View {
         ScrollViewReader { proxy in
             ScrollView(.horizontal, showsIndicators: false) {
-                LazyHStack(spacing: 20) {
+                LazyHStack(spacing: 0) {
                     ForEach(assetsGroupedByMonth.keys.sorted(), id: \.self) { date in
                         monthPickerButton(for: date)
+                            .padding(.horizontal, 8)
                             .id(date)
                             .onTapGesture {
                                 if selectedDate != date {
