@@ -29,6 +29,7 @@ class PhotoDeleteVM: ObservableObject {
     @Published var shouldShowUndoButton: Bool = false
     @Published var shouldNavigateToResult: Bool = false
     @Published var shouldSelectNextMonth: Bool = false
+    @Published var shouldDisableAds: Bool = false
     @Published var actionButtonState: ActionButtonState = .show
     @Published var selectedMonth: Date?
     @Published var errorMessage: String?
@@ -57,12 +58,15 @@ class PhotoDeleteVM: ObservableObject {
     }
     
     private let assetService: AssetService
+    private let adService: AdService
     private var subscriptions: [AnyCancellable] = []
     
     init(
-        assetService: AssetService
+        assetService: AssetService,
+        adService: AdService
     ) {
         self.assetService = assetService
+        self.adService = adService
         self.addSubscription()
         print("PhotoDeleteVM init")
     }
@@ -91,6 +95,7 @@ class PhotoDeleteVM: ObservableObject {
         self.title = title
         
         self.assetService = .init()
+        self.adService = .init()
     }
     
     private func addSubscription() {
@@ -101,6 +106,13 @@ class PhotoDeleteVM: ObservableObject {
                     self?.assetsGroupedByMonth = assetsGroupedByMonth
                     self?.initMonthAsset()
                 }
+            }
+            .store(in: &subscriptions)
+        
+        adService.$shouldDisableAds
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] shouldDisableAds in
+                self?.shouldDisableAds = shouldDisableAds
             }
             .store(in: &subscriptions)
     }
@@ -288,7 +300,7 @@ class PhotoDeleteVM: ObservableObject {
     }
     
     private func showAds() {
-        guard !isShowingAds else { return }
+        guard !isShowingAds, !shouldDisableAds else { return }
         isShowingAds = true
         DispatchQueue.main.async { [weak self] in
             guard let self else { return }
@@ -409,6 +421,9 @@ class PhotoDeleteVM: ObservableObject {
 
 extension Dependency.ViewModels {
     func photoDeleteVM() -> PhotoDeleteVM {
-        return PhotoDeleteVM(assetService: services.assetService)
+        return PhotoDeleteVM(
+            assetService: services.assetService,
+            adService: services.adService
+        )
     }
 }

@@ -10,17 +10,22 @@ import GoogleMobileAds
 class AdService: NSObject, ObservableObject {
     @Published var nativeAd: GADNativeAd?
     @Published var interstitialAd: GADInterstitialAd?
+    @Published var shouldDisableAds: Bool = false
 
     private var adLoader: GADAdLoader!
 
     override init() {
         super.init()
-        refreshNativeAd() // Load native ad on init
-        loadInterstitialAd()
+        checkIfShouldDisableAds()
+        if !shouldDisableAds {
+            refreshNativeAd()
+            loadInterstitialAd()
+        }
     }
 
     // MARK: - Native Ad Logic
     func refreshNativeAd() {
+        guard !shouldDisableAds else { return }
         adLoader = GADAdLoader(
             adUnitID: "ca-app-pub-3940256099942544/3986624511",
             // The UIViewController parameter is optional.
@@ -34,6 +39,7 @@ class AdService: NSObject, ObservableObject {
 
     // MARK: - Interstitial Ad Logic
     func loadInterstitialAd() {
+        guard !shouldDisableAds else { return }
         GADInterstitialAd.load(
             withAdUnitID: "ca-app-pub-3940256099942544/4411468910",
             request: GADRequest()) { interstitialAd, error in
@@ -47,6 +53,21 @@ class AdService: NSObject, ObservableObject {
                     print("Failed to load interstitial ad")
                 }
             }
+    }
+    
+    private func checkIfShouldDisableAds() {
+        shouldDisableAds = UserDefaults.standard.bool(forKey: "shouldDisableAds")
+    }
+    
+    func disableAds(code: String, completion: @escaping (_ message: String) -> Void) {
+        if code == "220896" {
+            UserDefaults.standard.set(true, forKey: "shouldDisableAds")
+            shouldDisableAds = true
+            completion("Redeem successfully!")
+        }
+        else {
+            completion("Code entered is incorrect.")
+        }
     }
 }
 

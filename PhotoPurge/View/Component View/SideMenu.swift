@@ -102,7 +102,7 @@ struct SideMenu: View {
             case .instruction:
                 views.instructionView(shouldShowContinueButton: false)
             case .redeem:
-                Text("redeem")
+                views.redeemView()
             }
         }
         
