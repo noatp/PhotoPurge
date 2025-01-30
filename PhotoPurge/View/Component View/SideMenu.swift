@@ -7,9 +7,11 @@
 
 import SwiftUI
 
-enum SideMenuOptions: String, CaseIterable {
+enum SideMenuOptions: String, CaseIterable, Identifiable {
     case instruction
     case redeem
+    
+    var id: String { self.rawValue }
     
     var title: String {
         rawValue.capitalized
@@ -18,9 +20,9 @@ enum SideMenuOptions: String, CaseIterable {
     var systemImageName: String {
         switch self {
         case .instruction:
-            "questionmark.circle"
+            return "questionmark.circle"
         case .redeem:
-            "arrowshape.turn.up.right.circle"
+            return "arrowshape.turn.up.right.circle"
         }
     }
 }
@@ -68,18 +70,21 @@ struct SideMenu: View {
             guard option != nil else { return }
             shouldPresent = true
         }
-        .sheet(isPresented: $shouldPresent) {
-            selectedOption = nil
-        } content: {
-            switch selectedOption {
+        .sheet(item: $selectedOption) { option in
+            destinationView(for: option)
+        }
+        
+    }
+    private func destinationView(for option: SideMenuOptions) -> some View {
+        Group {
+            switch option {
             case .instruction:
                 views.instructionView()
             case .redeem:
-                Text("Redeem")
-            case nil:
-                Text("nil")
+                Text("redeem")
             }
         }
+        
     }
 }
 
