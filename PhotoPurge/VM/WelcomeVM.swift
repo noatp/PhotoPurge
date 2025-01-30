@@ -23,7 +23,6 @@ class WelcomeVM: ObservableObject {
     ) {
         self.assetService = assetService
         self.isFirstLaunch = UserDefaults.standard.bool(forKey: "hasLaunchedBefore") == false
-        self.addSubscription()
     }
     
     init(
@@ -35,10 +34,6 @@ class WelcomeVM: ObservableObject {
         self.showAlert = showAlert
         self.isFirstLaunch = isFirstLaunch
         self.assetService = .init()
-    }
-    
-    private func addSubscription() {
-        
     }
     
     func requestAccess() {
