@@ -53,10 +53,25 @@ struct SideMenu: View {
                         }
                     HStack {
                         VStack(alignment: .leading) {
-                            Text("Menu")
-                                .font(.title)
-                                .bold()
-                                .padding()
+                            HStack {
+                                Text("Menu")
+                                    .font(.title)
+                                    .bold()
+                                    .padding()
+                                Spacer()
+                                Button {
+                                    withAnimation {
+                                        isShowingSideMenu.toggle()
+                                    }
+                                } label: {
+                                    Image(systemName: "xmark")
+                                        .padding()
+                                }
+                                .frame(width: 44, height: 44)
+                                .foregroundStyle(Color.gray)
+
+                            }
+                            
                             ForEach(SideMenuOptions.allCases, id: \.title) { sideMenuOption in
                                 SideMenuOptionRow(sideMenuOption: sideMenuOption, selectedOption: $selectedOption)
                                     .padding(.horizontal)
