@@ -65,9 +65,9 @@ struct PhotoDeleteView: View {
                     }
                 } label: {
                     Image(systemName: "line.3.horizontal")
-                        
                         .padding(.vertical)
                 }
+                .frame(width: 44, height: 44)
             }
         }
         .toolbar(isShowingSideMenu ? .hidden : .visible, for: .navigationBar)
