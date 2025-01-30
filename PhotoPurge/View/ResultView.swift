@@ -45,7 +45,7 @@ struct ResultView: View {
         .navigationTitle("Result")
         .navigationBarBackButtonHidden(true) // Hide the default back button
         .task {
-            if !didShowAd {
+            if !didShowAd && !viewModel.shouldDisableAds{
                 Task {
                     viewModel.showAd()
                     didShowAd = true

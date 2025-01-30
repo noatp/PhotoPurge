@@ -10,6 +10,7 @@ import GoogleMobileAds
 
 class ResultVM: NSObject, ObservableObject {
     @Published var deleteResult: DeleteResult?
+    @Published var shouldDisableAds: Bool = false
     
     private let assetService: AssetService
     private let adService: AdService
@@ -58,6 +59,13 @@ class ResultVM: NSObject, ObservableObject {
             .sink { [weak self] interstitialAd in
                 guard let self = self else { return }
                 self.interstitialAd = interstitialAd
+            }
+            .store(in: &subscriptions)
+        
+        adService.$shouldDisableAds
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] shouldDisableAds in
+                self?.shouldDisableAds = shouldDisableAds
             }
             .store(in: &subscriptions)
     }
