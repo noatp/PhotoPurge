@@ -12,7 +12,7 @@ import AVKit
 struct PhotoDeleteView: View {
     @ObservedObject private var viewModel: PhotoDeleteVM
     @State private var shouldShowAlert: Bool = false
-    @State private var shouldShowAndAnimatePhotoPanale: Bool = false
+    @State private var shouldShowAndAnimatePhotoPanal: Bool = false
     @State private var isShowingSideMenu: Bool = false
     
     private let views: Dependency.Views
@@ -60,7 +60,9 @@ struct PhotoDeleteView: View {
             }
             ToolbarItem(placement: .topBarLeading) {
                 Button {
-                    isShowingSideMenu.toggle()
+                    withAnimation {
+                        isShowingSideMenu.toggle()
+                    }
                 } label: {
                     Image(systemName: "line.3.horizontal")
                         
@@ -74,7 +76,7 @@ struct PhotoDeleteView: View {
             shouldShowAlert = true
         }
         .onChange(of: viewModel.currentDisplayingAsset, { oldValue, newValue in
-            shouldShowAndAnimatePhotoPanale = newValue != nil
+            shouldShowAndAnimatePhotoPanal = newValue != nil
         })
         .alert(viewModel.errorMessage ?? "", isPresented: $shouldShowAlert) {
             Button("OK", role: .cancel) {
@@ -95,7 +97,7 @@ struct PhotoDeleteView: View {
     
     var photoPanel: some View {
         ZStack {
-            if shouldShowAndAnimatePhotoPanale {
+            if shouldShowAndAnimatePhotoPanal {
                 if let currentDisplayingAsset = viewModel.currentDisplayingAsset {
                     ZStack {
                         VStack {
@@ -121,7 +123,7 @@ struct PhotoDeleteView: View {
                     .transition(.opacity)
             }
         }
-        .animation(.easeInOut, value: shouldShowAndAnimatePhotoPanale)
+        .animation(.easeInOut, value: shouldShowAndAnimatePhotoPanal)
         
     }
     

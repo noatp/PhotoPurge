@@ -14,7 +14,13 @@ enum SideMenuOptions: String, CaseIterable, Identifiable {
     var id: String { self.rawValue }
     
     var title: String {
-        rawValue.capitalized
+        switch self {
+        case .instruction:
+            "How to"
+        case .redeem:
+            "Redeem"
+        }
+        
     }
     
     var systemImageName: String {
@@ -38,10 +44,12 @@ struct SideMenu: View {
             ZStack {
                 if isShowingSideMenu {
                     Rectangle()
-                        .opacity(0.4)
+                        .fill(Color(UIColor.systemBackground).opacity(0.6))
                         .ignoresSafeArea()
                         .onTapGesture {
-                            isShowingSideMenu.toggle()
+                            withAnimation {
+                                isShowingSideMenu.toggle()
+                            }
                         }
                     HStack {
                         VStack(alignment: .leading) {
@@ -61,11 +69,9 @@ struct SideMenu: View {
                     }
                     .transition(.move(edge: .leading))
                 }
-                
             }
-            
         }
-        .animation(.easeInOut, value: isShowingSideMenu)
+//        .animation(.easeInOut, value: isShowingSideMenu)
         .onChange(of: selectedOption) { _, option in
             guard option != nil else { return }
             shouldPresent = true
