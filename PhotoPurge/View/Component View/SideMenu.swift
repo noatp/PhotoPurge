@@ -9,7 +9,6 @@ import SwiftUI
 
 enum SideMenuOptions: String, CaseIterable, Identifiable {
     case instruction
-    case redeem
     
     var id: String { self.rawValue }
     
@@ -17,8 +16,6 @@ enum SideMenuOptions: String, CaseIterable, Identifiable {
         switch self {
         case .instruction:
             "How to"
-        case .redeem:
-            "Redeem"
         }
         
     }
@@ -27,8 +24,6 @@ enum SideMenuOptions: String, CaseIterable, Identifiable {
         switch self {
         case .instruction:
             return "questionmark.circle"
-        case .redeem:
-            return "arrowshape.turn.up.right.circle"
         }
     }
 }
@@ -86,7 +81,6 @@ struct SideMenu: View {
                 }
             }
         }
-//        .animation(.easeInOut, value: isShowingSideMenu)
         .onChange(of: selectedOption) { _, option in
             guard option != nil else { return }
             shouldPresent = true
@@ -101,8 +95,6 @@ struct SideMenu: View {
             switch option {
             case .instruction:
                 views.instructionView(shouldShowContinueButton: false)
-            case .redeem:
-                views.redeemView()
             }
         }
         
