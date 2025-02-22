@@ -34,6 +34,7 @@ struct CurrentAssetDisplay: View {
             }
         case .ads:
             views.nativeAdContentView()
+                .padding(.horizontal, 8)
                 .padding(.bottom)
         }
     }
@@ -41,7 +42,7 @@ struct CurrentAssetDisplay: View {
 
 #Preview {
     CurrentAssetDisplay(
-        displayingAsset: .init(assetType: .photo, image: .init(named: "test1")),
+        displayingAsset: .init(assetType: .ads, image: .init(named: "test1")),
         views: Dependency.preview.views()
     )
 }
