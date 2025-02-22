@@ -17,17 +17,25 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Photo Purgers" textAlignment="center" lineBreakMode="middleTruncation" baselineAdjustment="alignBaselines" minimumFontSize="18" translatesAutoresizingMaskIntoConstraints="NO" id="GJd-Yh-RWb">
-                                <rect key="frame" x="0.0" y="263.66666666666669" width="393" height="43"/>
+                                <rect key="frame" x="78.000000000000014" y="258" width="237.33333333333337" height="43"/>
                                 <fontDescription key="fontDescription" type="boldSystem" pointSize="36"/>
                                 <nil key="highlightedColor"/>
                             </label>
+                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="newAppIcon" translatesAutoresizingMaskIntoConstraints="NO" id="Ze3-1l-e8S">
+                                <rect key="frame" x="59" y="301" width="275" height="275"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" secondItem="Ze3-1l-e8S" secondAttribute="height" multiplier="1:1" id="7yr-lt-Sk8"/>
+                                </constraints>
+                            </imageView>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="Bcu-3y-fUS"/>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                         <constraints>
                             <constraint firstItem="Bcu-3y-fUS" firstAttribute="centerX" secondItem="GJd-Yh-RWb" secondAttribute="centerX" id="Q3B-4B-g5h"/>
-                            <constraint firstItem="GJd-Yh-RWb" firstAttribute="centerY" secondItem="Ze5-6b-2t3" secondAttribute="bottom" multiplier="1/3" constant="1" id="moa-c2-u7t"/>
-                            <constraint firstItem="GJd-Yh-RWb" firstAttribute="leading" secondItem="Bcu-3y-fUS" secondAttribute="leading" symbolic="YES" id="x7j-FC-K8j"/>
+                            <constraint firstItem="Ze3-1l-e8S" firstAttribute="centerY" secondItem="Bcu-3y-fUS" secondAttribute="centerY" id="VXF-gg-RlT"/>
+                            <constraint firstItem="GJd-Yh-RWb" firstAttribute="bottom" secondItem="Ze3-1l-e8S" secondAttribute="top" id="dlb-xv-s0e"/>
+                            <constraint firstItem="Ze3-1l-e8S" firstAttribute="width" secondItem="Ze5-6b-2t3" secondAttribute="width" multiplier="0.7" id="hTh-eu-CUB"/>
+                            <constraint firstItem="Ze3-1l-e8S" firstAttribute="centerX" secondItem="Bcu-3y-fUS" secondAttribute="centerX" id="obm-NX-TKW"/>
                         </constraints>
                     </view>
                 </viewController>
@@ -37,6 +45,7 @@
         </scene>
     </scenes>
     <resources>
+        <image name="newAppIcon" width="1024" height="1024"/>
         <systemColor name="systemBackgroundColor">
             <color white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
         </systemColor>
