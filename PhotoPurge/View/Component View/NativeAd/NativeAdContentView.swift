@@ -10,7 +10,7 @@ import SwiftUI
 
 struct NativeAdConstant {
     static let adDuration: Double = 1.5 //1.5 seconds
-    static let photosLimitPerAd: Int = 10 // 10 photos will show an ad
+    static let photosLimitPerAd: Int = 20 // 10 photos will show an ad
 }
 
 struct NativeAdContentView: View {

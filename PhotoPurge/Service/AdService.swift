@@ -26,13 +26,20 @@ class AdService: NSObject, ObservableObject {
     // MARK: - Native Ad Logic
     func refreshNativeAd() {
         guard !shouldDisableAds else { return }
+#if DEBUG
+        let adUnitID = "ca-app-pub-3940256099942544/3986624511"
+#else
+        let adUnitID = "ca-app-pub-3768609381082312/4401168640"
+#endif
+
         adLoader = GADAdLoader(
-            adUnitID: "ca-app-pub-3940256099942544/3986624511",
+            adUnitID: adUnitID,
             // The UIViewController parameter is optional.
             rootViewController: nil,
             adTypes: [.native],
             options: nil
         )
+        
         adLoader.delegate = self
         adLoader.load(GADRequest())
     }
@@ -40,8 +47,13 @@ class AdService: NSObject, ObservableObject {
     // MARK: - Interstitial Ad Logic
     func loadInterstitialAd() {
         guard !shouldDisableAds else { return }
+#if DEBUG
+        let adUnitID = "ca-app-pub-3940256099942544/4411468910"
+#else
+        let adUnitID = "ca-app-pub-3768609381082312/1253577779"
+#endif
         GADInterstitialAd.load(
-            withAdUnitID: "ca-app-pub-3940256099942544/4411468910",
+            withAdUnitID: adUnitID,
             request: GADRequest()) { interstitialAd, error in
                 if let error {
                     print("Failed to load interstitial ad: \(error.localizedDescription)")
