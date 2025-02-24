@@ -210,7 +210,7 @@ struct PhotoDeleteView: View {
             case .ads:
                 VStack(spacing: 0) {
                     LabelActionButton(
-                        labelText: "Skip",
+                        labelText: "Skip Ad",
                         backgroundColor: .accentColor,
                         foregroundColor: .white
                     ) {
@@ -270,7 +270,7 @@ struct PhotoDeleteView: View {
     NavigationStack {
         PhotoDeleteView(
             viewModel: .init(
-                assetsGroupedByMonth: [:],
+                assetsGroupedByMonth: assetsGroupedByMonth,
                 currentDisplayingAsset: .init(assetType: .photo, image: .init(named: "test1")),
                 nextImage: .init(named: "test1"),
                 shouldShowUndoButton: false,

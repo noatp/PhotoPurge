@@ -34,6 +34,7 @@ struct CurrentAssetDisplay: View {
             }
         case .ads:
             views.nativeAdContentView()
+                .padding(.horizontal, 8)
                 .padding(.bottom)
         }
     }
