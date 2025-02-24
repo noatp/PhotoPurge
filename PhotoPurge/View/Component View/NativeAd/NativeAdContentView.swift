@@ -33,7 +33,7 @@ struct NativeAdContentView: View {
                 }
             }
             else {
-                LoadingIndicator()
+                LoadingIndicator(loadingMessage: "Loading Ad")
                     .frame(width: proxy.size.width, height: proxy.size.height)
             }
         }
