@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import FirebaseAnalytics
 
 struct ResultView: View {
     @ObservedObject private var viewModel: ResultVM
@@ -34,6 +35,9 @@ struct ResultView: View {
                 
                 Button(action: {
                     dismiss()
+                    Analytics.logEvent(AnalyticsEventSelectContent, parameters: [
+                      AnalyticsParameterItemID: "id-ResultView-Return"
+                    ])
                 }) {
                     Text("Return")
                         .font(.title2)
