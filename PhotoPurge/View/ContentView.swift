@@ -28,6 +28,9 @@ struct ContentView: View {
                 views.photoDeleteView()
             }
         }
+//        Button("Crash") {
+//          fatalError("Crash was triggered")
+//        }
     }
 }
 
