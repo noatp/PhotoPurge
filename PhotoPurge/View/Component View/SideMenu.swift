@@ -9,6 +9,7 @@ import SwiftUI
 
 enum SideMenuOptions: String, CaseIterable, Identifiable {
     case instruction
+    case support
     
     var id: String { self.rawValue }
     
@@ -16,6 +17,8 @@ enum SideMenuOptions: String, CaseIterable, Identifiable {
         switch self {
         case .instruction:
             "How to"
+        case .support:
+            "Support"
         }
         
     }
@@ -24,6 +27,8 @@ enum SideMenuOptions: String, CaseIterable, Identifiable {
         switch self {
         case .instruction:
             return "questionmark.circle"
+        case .support:
+            return "info.circle"
         }
     }
 }
@@ -95,6 +100,8 @@ struct SideMenu: View {
             switch option {
             case .instruction:
                 views.instructionView(shouldShowContinueButton: false)
+            case .support:
+                views.supportView()
             }
         }
         
