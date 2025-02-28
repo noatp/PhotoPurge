@@ -22,27 +22,6 @@ enum ActionButtonState {
     case hide
     case ads
 }
-
-enum PhotoDeleteVMError: UserFriendlyError {
-    case indexOutOfRangeWhenAddAssetToDeleteArray(message: String)
-    
-    // Detailed message for logging purposes.
-    var errorDescription: String? {
-        switch self {
-        case .indexOutOfRangeWhenAddAssetToDeleteArray(let message):
-            return message
-        }
-    }
-    
-    // Simplified, user-friendly error message.
-    var userFacingMessage: String {
-        switch self {
-        case .indexOutOfRangeWhenAddAssetToDeleteArray:
-            "We encountered an unexpected error while deleting this photo. Please try again, and if the issue persists, contact support."
-        }
-    }
-}
-
 class PhotoDeleteVM: ObservableObject {
     @Published var assetsGroupedByMonth: [Date: [PHAsset]]?
     @Published var currentDisplayingAsset: DisplayingAsset?
@@ -59,6 +38,7 @@ class PhotoDeleteVM: ObservableObject {
     @Published var assetsToDelete: [PHAsset] = []
     
     private var currentAssetIndex = -1
+    private var cachedCurrentAsset: PHAsset?
     private var photosWithoutAds = 0
     private var assets: [PHAsset]?
     private var isDeletingPhotos: Bool = false
@@ -155,17 +135,12 @@ class PhotoDeleteVM: ObservableObject {
     
     func deletePhoto() {
         guard actionButtonState == .show else { return }
-        guard let assets, pastActions.count < assets.count else { return }
-        guard isIndexValid(currentAssetIndex) else {
-            let detailedError = PhotoDeleteVMError.indexOutOfRangeWhenAddAssetToDeleteArray(message: "Invalid index in deletePhoto: \(currentAssetIndex) for \(assets.count)")
-            Crashlytics.crashlytics().record(error: detailedError)
-            errorMessage = detailedError.userFacingMessage
-            return
-        }
+        guard let assets, let cachedCurrentAsset, pastActions.count < assets.count else { return }
 
         if !isShowingAds {
             pushLastestAction(.delete)
-            assetsToDelete.append(assets[currentAssetIndex])
+            assetsToDelete.append(cachedCurrentAsset)
+            self.cachedCurrentAsset = nil
         }
         fetchNewPhotos()
     }
@@ -401,6 +376,7 @@ class PhotoDeleteVM: ObservableObject {
                     switch result {
                     case .success(let image):
                         self.currentDisplayingAsset = .init(assetType: .photo, image: image)
+                        self.cachedCurrentAsset = asset
                     case .failure(let error):
                         self.errorMessage = error.localizedDescription
                     }
@@ -414,6 +390,7 @@ class PhotoDeleteVM: ObservableObject {
                     switch result {
                     case .success(let video):
                         self.currentDisplayingAsset = .init(assetType: .video, video: video)
+                        self.cachedCurrentAsset = asset
                     case .failure(let error):
                         self.errorMessage = error.localizedDescription
                     }

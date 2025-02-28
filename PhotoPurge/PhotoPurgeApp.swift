@@ -23,9 +23,6 @@ struct PhotoPurgeApp: App {
     
     init() {
         GADMobileAds.sharedInstance().start(completionHandler: nil)
-#if DEBUG
-        GADMobileAds.sharedInstance().requestConfiguration.testDeviceIdentifiers = [ "8bee8601f0376c96dc2b9bf96e344d0d" ]
-#endif
     }
     
     var body: some Scene {
