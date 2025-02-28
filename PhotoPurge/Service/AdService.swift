@@ -8,17 +8,36 @@
 import GoogleMobileAds
 import FirebaseCrashlytics
 
-enum AdServiceError: LocalizedError {
+enum AdServiceError: LocalizedError, CustomNSError {
     case failToLoadInterstitialAd(message: String)
     case failToLoadNativeAd(message: String)
     
+    // MARK: - LocalizedError
     var errorDescription: String? {
         switch self {
         case .failToLoadInterstitialAd(let message):
-            return message
+            return "Failed to load interstitial ad: \(message)"
         case .failToLoadNativeAd(let message):
-            return message
+            return "Failed to load native ad: \(message)"
         }
+    }
+    
+    // MARK: - CustomNSError
+    static var errorDomain: String {
+        return "com.PhotoPurger.AdServiceError"
+    }
+    
+    var errorCode: Int {
+        switch self {
+        case .failToLoadInterstitialAd:
+            return 1001
+        case .failToLoadNativeAd:
+            return 1002
+        }
+    }
+    
+    var errorUserInfo: [String : Any] {
+        return [NSLocalizedDescriptionKey: self.errorDescription ?? ""]
     }
 }
 
@@ -44,7 +63,7 @@ class AdService: NSObject, ObservableObject {
 #if DEBUG
         let adUnitID = "ca-app-pub-3940256099942544/3986624511"
 #else
-        let adUnitID = "ca-app-pub-3768609381082312/4401168640"
+        let adUnitID = "ca-app-pub-3768609381082312/1253577779"
 #endif
         
         adLoader = GADAdLoader(
@@ -65,7 +84,7 @@ class AdService: NSObject, ObservableObject {
 #if DEBUG
         let adUnitID = "ca-app-pub-3940256099942544/4411468910"
 #else
-        let adUnitID = "ca-app-pub-3768609381082312/1253577779"
+        let adUnitID = "ca-app-pub-3768609381082312/4401168640"
 #endif
         GADInterstitialAd.load(
             withAdUnitID: adUnitID,
