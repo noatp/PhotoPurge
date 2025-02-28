@@ -9,6 +9,7 @@ import Foundation
 import Photos
 import UIKit
 import Combine
+import FirebaseCrashlytics
 
 enum LatestAction{
     case delete
@@ -20,6 +21,26 @@ enum ActionButtonState {
     case confirmDelete
     case hide
     case ads
+}
+
+enum PhotoDeleteVMError: UserFriendlyError {
+    case indexOutOfRangeWhenAddAssetToDeleteArray(message: String)
+    
+    // Detailed message for logging purposes.
+    var errorDescription: String? {
+        switch self {
+        case .indexOutOfRangeWhenAddAssetToDeleteArray(let message):
+            return message
+        }
+    }
+    
+    // Simplified, user-friendly error message.
+    var userFacingMessage: String {
+        switch self {
+        case .indexOutOfRangeWhenAddAssetToDeleteArray:
+            "We encountered an unexpected error while deleting this photo. Please try again, and if the issue persists, contact support."
+        }
+    }
 }
 
 class PhotoDeleteVM: ObservableObject {
@@ -135,6 +156,13 @@ class PhotoDeleteVM: ObservableObject {
     func deletePhoto() {
         guard actionButtonState == .show else { return }
         guard let assets, pastActions.count < assets.count else { return }
+        guard isIndexValid(currentAssetIndex) else {
+            let detailedError = PhotoDeleteVMError.indexOutOfRangeWhenAddAssetToDeleteArray(message: "Invalid index in deletePhoto: \(currentAssetIndex) for \(assets.count)")
+            Crashlytics.crashlytics().record(error: detailedError)
+            errorMessage = detailedError.userFacingMessage
+            return
+        }
+
         if !isShowingAds {
             pushLastestAction(.delete)
             assetsToDelete.append(assets[currentAssetIndex])

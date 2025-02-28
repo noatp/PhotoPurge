@@ -6,14 +6,29 @@
 //
 
 import GoogleMobileAds
+import FirebaseCrashlytics
+
+enum AdServiceError: LocalizedError {
+    case failToLoadInterstitialAd(message: String)
+    case failToLoadNativeAd(message: String)
+    
+    var errorDescription: String? {
+        switch self {
+        case .failToLoadInterstitialAd(let message):
+            return message
+        case .failToLoadNativeAd(let message):
+            return message
+        }
+    }
+}
 
 class AdService: NSObject, ObservableObject {
     @Published var nativeAd: GADNativeAd?
     @Published var interstitialAd: GADInterstitialAd?
     @Published var shouldDisableAds: Bool = false
-
+    
     private var adLoader: GADAdLoader!
-
+    
     override init() {
         super.init()
         checkIfShouldDisableAds()
@@ -22,7 +37,7 @@ class AdService: NSObject, ObservableObject {
             loadInterstitialAd()
         }
     }
-
+    
     // MARK: - Native Ad Logic
     func refreshNativeAd() {
         guard !shouldDisableAds else { return }
@@ -31,7 +46,7 @@ class AdService: NSObject, ObservableObject {
 #else
         let adUnitID = "ca-app-pub-3768609381082312/4401168640"
 #endif
-
+        
         adLoader = GADAdLoader(
             adUnitID: adUnitID,
             // The UIViewController parameter is optional.
@@ -43,7 +58,7 @@ class AdService: NSObject, ObservableObject {
         adLoader.delegate = self
         adLoader.load(GADRequest())
     }
-
+    
     // MARK: - Interstitial Ad Logic
     func loadInterstitialAd() {
         guard !shouldDisableAds else { return }
@@ -56,13 +71,21 @@ class AdService: NSObject, ObservableObject {
             withAdUnitID: adUnitID,
             request: GADRequest()) { interstitialAd, error in
                 if let error {
+                    let adError = AdServiceError.failToLoadInterstitialAd(message: error.localizedDescription)
+                    Crashlytics.crashlytics().record(error: adError)
+#if DEBUG
                     print("Failed to load interstitial ad: \(error.localizedDescription)")
+#endif
                 }
                 else if let interstitialAd {
                     self.interstitialAd = interstitialAd
                 }
                 else {
+                    let adError = AdServiceError.failToLoadInterstitialAd(message: "No ad and no error provided")
+                    Crashlytics.crashlytics().record(error: adError)
+#if DEBUG
                     print("Failed to load interstitial ad")
+#endif
                 }
             }
     }
@@ -89,18 +112,26 @@ extension AdService: GADNativeAdLoaderDelegate {
         self.nativeAd = nativeAd
         nativeAd.delegate = self
     }
-
+    
     func adLoader(_ adLoader: GADAdLoader, didFailToReceiveAdWithError error: any Error) {
+        let adError = AdServiceError.failToLoadNativeAd(message: error.localizedDescription)
+        Crashlytics.crashlytics().record(error: adError)
+#if DEBUG
         print("Failed to load native ad: \(error.localizedDescription)")
+#endif
     }
 }
 
 extension AdService: GADNativeAdDelegate {
     func nativeAdDidRecordClick(_ nativeAd: GADNativeAd) {
+#if DEBUG
         print("Native ad clicked.")
+#endif
     }
-
+    
     func nativeAdDidRecordImpression(_ nativeAd: GADNativeAd) {
+#if DEBUG
         print("Native ad impression recorded.")
+#endif
     }
 }
