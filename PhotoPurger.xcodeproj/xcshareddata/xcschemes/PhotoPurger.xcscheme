@@ -41,6 +41,17 @@
                ReferencedContainer = "container:PhotoPurger.xcodeproj">
             </BuildableReference>
          </TestableReference>
+         <TestableReference
+            skipped = "NO"
+            parallelizable = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "CAE4E08B2D72154700E1C254"
+               BuildableName = "PhotoPurgerTests.xctest"
+               BlueprintName = "PhotoPurgerTests"
+               ReferencedContainer = "container:PhotoPurger.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
       </Testables>
    </TestAction>
    <LaunchAction
