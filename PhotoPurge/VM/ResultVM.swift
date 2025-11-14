@@ -14,16 +14,19 @@ class ResultVM: NSObject, ObservableObject {
     
     private let assetService: AssetService
     private let adService: AdService
+    private let purchaseService: PurchaseService
     private var subscriptions: [AnyCancellable] = []
     
     private var interstitialAd: GADInterstitialAd?
     
     init(
         assetService: AssetService,
-        adService: AdService
+        adService: AdService,
+        purchaseService: PurchaseService
     ) {
         self.assetService = assetService
         self.adService = adService
+        self.purchaseService = purchaseService
         super.init()
         self.addSubscription()
     }
@@ -34,6 +37,7 @@ class ResultVM: NSObject, ObservableObject {
         self.deleteResult = deleteResult
         self.assetService = .init()
         self.adService = .init()
+        self.purchaseService = .init()
     }
     
     func showAd() {
@@ -62,10 +66,10 @@ class ResultVM: NSObject, ObservableObject {
             }
             .store(in: &subscriptions)
         
-        adService.$shouldDisableAds
+        purchaseService.$isAdFree
             .receive(on: DispatchQueue.main)
-            .sink { [weak self] shouldDisableAds in
-                self?.shouldDisableAds = shouldDisableAds
+            .sink { [weak self] isAdFree in
+                self?.shouldDisableAds = isAdFree
             }
             .store(in: &subscriptions)
     }
@@ -108,7 +112,8 @@ extension Dependency.ViewModels {
     func resultVM() -> ResultVM {
         return ResultVM(
             assetService: services.assetService,
-            adService: services.adService
+            adService: services.adService,
+            purchaseService: services.purchaseService
         )
     }
 }

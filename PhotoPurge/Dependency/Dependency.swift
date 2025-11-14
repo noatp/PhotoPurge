@@ -10,13 +10,16 @@ import Foundation
 class Dependency {
     private let assetService: AssetService
     private let adService: AdService
+    private let purchaseService: PurchaseService
     
     init(
         assetService: AssetService = .init(),
-        adService: AdService = .init()
+        adService: AdService = .init(),
+        purchaseService: PurchaseService = .init()
     ) {
         self.assetService = assetService
         self.adService = adService
+        self.purchaseService = purchaseService
     }
     
     static let preview: Dependency = .init()
@@ -24,10 +27,12 @@ class Dependency {
     class Services {
         let assetService: AssetService
         let adService: AdService
+        let purchaseService: PurchaseService
         
         init(dependency: Dependency) {
             self.assetService = dependency.assetService
             self.adService = dependency.adService
+            self.purchaseService = dependency.purchaseService
         }
     }
     
