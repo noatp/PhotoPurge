@@ -10,6 +10,7 @@ import SwiftUI
 enum SideMenuOptions: String, CaseIterable, Identifiable {
     case instruction
     case support
+    case removeAds
     
     var id: String { self.rawValue }
     
@@ -19,6 +20,8 @@ enum SideMenuOptions: String, CaseIterable, Identifiable {
             "How to"
         case .support:
             "Support"
+        case .removeAds:
+            "Remove Ads"
         }
         
     }
@@ -29,6 +32,8 @@ enum SideMenuOptions: String, CaseIterable, Identifiable {
             return "questionmark.circle"
         case .support:
             return "info.circle"
+        case .removeAds:
+            return "rectangle.on.rectangle.slash"
         }
     }
 }
@@ -102,6 +107,8 @@ struct SideMenu: View {
                 views.instructionView(shouldShowContinueButton: false)
             case .support:
                 views.supportView()
+            case .removeAds:
+                views.removeAdsView()
             }
         }
         

@@ -8,6 +8,10 @@
 import GoogleMobileAds
 import FirebaseCrashlytics
 
+struct AdServiceConstants {
+    static let isAdFreeUserDefaultKey: String = "isAdFree"
+}
+
 enum AdServiceError: LocalizedError, CustomNSError {
     case failToLoadInterstitialAd(message: String)
     case failToLoadNativeAd(message: String)
@@ -44,13 +48,14 @@ enum AdServiceError: LocalizedError, CustomNSError {
 class AdService: NSObject, ObservableObject {
     @Published var nativeAd: GADNativeAd?
     @Published var interstitialAd: GADInterstitialAd?
-    @Published var shouldDisableAds: Bool = false
+    private var shouldDisableAds: Bool {
+        UserDefaults.standard.bool(forKey: AdServiceConstants.isAdFreeUserDefaultKey)
+    }
     
     private var adLoader: GADAdLoader!
     
     override init() {
         super.init()
-        checkIfShouldDisableAds()
         if !shouldDisableAds {
             refreshNativeAd()
             loadInterstitialAd()
@@ -107,21 +112,6 @@ class AdService: NSObject, ObservableObject {
 #endif
                 }
             }
-    }
-    
-    private func checkIfShouldDisableAds() {
-        shouldDisableAds = UserDefaults.standard.bool(forKey: "shouldDisableAds")
-    }
-    
-    func disableAds(code: String, completion: @escaping (_ message: String) -> Void) {
-        if code == "220896" {
-            UserDefaults.standard.set(true, forKey: "shouldDisableAds")
-            shouldDisableAds = true
-            completion("Redeem successfully!")
-        }
-        else {
-            completion("Code entered is incorrect.")
-        }
     }
 }
 

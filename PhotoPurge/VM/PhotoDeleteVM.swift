@@ -59,15 +59,15 @@ class PhotoDeleteVM: ObservableObject {
     }
     
     private let assetService: AssetService
-    private let adService: AdService
+    private let purchaseService: PurchaseService
     private var subscriptions: [AnyCancellable] = []
     
     init(
         assetService: AssetService,
-        adService: AdService
+        purchaseService: PurchaseService
     ) {
         self.assetService = assetService
-        self.adService = adService
+        self.purchaseService = purchaseService
         self.addSubscription()
         print("PhotoDeleteVM init")
     }
@@ -96,7 +96,7 @@ class PhotoDeleteVM: ObservableObject {
         self.title = title
         
         self.assetService = .init()
-        self.adService = .init()
+        self.purchaseService = .init()
     }
     
     private func addSubscription() {
@@ -110,10 +110,10 @@ class PhotoDeleteVM: ObservableObject {
             }
             .store(in: &subscriptions)
         
-        adService.$shouldDisableAds
+        purchaseService.$isAdFree
             .receive(on: DispatchQueue.main)
-            .sink { [weak self] shouldDisableAds in
-                self?.shouldDisableAds = shouldDisableAds
+            .sink { [weak self] isAdFree in
+                self?.shouldDisableAds = isAdFree
             }
             .store(in: &subscriptions)
     }
@@ -432,7 +432,7 @@ extension Dependency.ViewModels {
     func photoDeleteVM() -> PhotoDeleteVM {
         return PhotoDeleteVM(
             assetService: services.assetService,
-            adService: services.adService
+            purchaseService: services.purchaseService
         )
     }
 }
