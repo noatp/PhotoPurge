@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		CA5C000F2D457D9D00DE985D /* GoogleMobileAds in Frameworks */ = {isa = PBXBuildFile; productRef = CA5C000E2D457D9D00DE985D /* GoogleMobileAds */; };
+		CAD05D792EC817DF001C0683 /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CAD05D782EC817DF001C0683 /* StoreKit.framework */; };
 		CAFE3E7D2D6E742000E9EFA2 /* FirebaseAnalyticsWithoutAdIdSupport in Frameworks */ = {isa = PBXBuildFile; productRef = CAFE3E7C2D6E742000E9EFA2 /* FirebaseAnalyticsWithoutAdIdSupport */; };
 		CAFE3E7F2D6E742000E9EFA2 /* FirebaseCrashlytics in Frameworks */ = {isa = PBXBuildFile; productRef = CAFE3E7E2D6E742000E9EFA2 /* FirebaseCrashlytics */; };
 /* End PBXBuildFile section */
@@ -24,6 +25,7 @@
 
 /* Begin PBXFileReference section */
 		CAA84E752D320E3A00260CCC /* PhotoPurger.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PhotoPurger.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		CAD05D782EC817DF001C0683 /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = System/Library/Frameworks/StoreKit.framework; sourceTree = SDKROOT; };
 		CAE4BA9D2D34BFB9007BCF58 /* PhotoPurgerUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PhotoPurgerUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -61,6 +63,7 @@
 				CAFE3E7F2D6E742000E9EFA2 /* FirebaseCrashlytics in Frameworks */,
 				CA5C000F2D457D9D00DE985D /* GoogleMobileAds in Frameworks */,
 				CAFE3E7D2D6E742000E9EFA2 /* FirebaseAnalyticsWithoutAdIdSupport in Frameworks */,
+				CAD05D792EC817DF001C0683 /* StoreKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -79,6 +82,7 @@
 			children = (
 				CAA84E772D320E3A00260CCC /* PhotoPurge */,
 				CAE4BA9E2D34BFB9007BCF58 /* PhotoPurgeUITests */,
+				CAD05D772EC817DF001C0683 /* Frameworks */,
 				CAA84E762D320E3A00260CCC /* Products */,
 			);
 			sourceTree = "<group>";
@@ -90,6 +94,14 @@
 				CAE4BA9D2D34BFB9007BCF58 /* PhotoPurgerUITests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		CAD05D772EC817DF001C0683 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				CAD05D782EC817DF001C0683 /* StoreKit.framework */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
